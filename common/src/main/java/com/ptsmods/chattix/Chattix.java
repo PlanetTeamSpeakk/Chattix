@@ -18,7 +18,9 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -105,7 +107,13 @@ public class Chattix {
                         .then(argument("target", EntityArgument.player())
                                 .executes(ctx -> executeDebug(ctx, EntityArgument.getPlayer(ctx, "target"), null))
                                 .then(argument("format", StringArgumentType.greedyString())
-                                        .executes(ctx -> executeDebug(ctx, EntityArgument.getPlayer(ctx, "target"), ctx.getArgument("format", String.class)))))));
+                                        .executes(ctx -> executeDebug(ctx, EntityArgument.getPlayer(ctx, "target"), ctx.getArgument("format", String.class))))))
+                .then(literal("docs")
+                        .executes(ctx -> {
+                            ctx.getSource().sendSuccess(Component.literal("Click here to go to the documentation site.")
+                                    .withStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://chattix.ptsmods.com"))), false);
+                            return 1;
+                        })));
     }
 
     private static int executeDebug(CommandContext<CommandSourceStack> ctx, ServerPlayer target, String format) {
