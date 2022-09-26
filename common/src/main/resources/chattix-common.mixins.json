@@ -1,0 +1,22 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.ptsmods.chattix.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "client": [
+  ],
+  "mixins": [
+    "MixinMessageArgumentChatMessage",
+    "MixinMessageArgumentMessage",
+    "MixinMinecraftServer",
+    "MixinPlayerList",
+    "MixinServerGamePacketListenerImpl",
+    "MixinStyleAccessor"
+  ],
+  "server": [
+    "MixinDedicatedServer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

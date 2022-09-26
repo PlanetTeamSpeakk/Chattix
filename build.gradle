@@ -1,0 +1,118 @@
+plugins {
+    id "architectury-plugin" version "3.4-SNAPSHOT"
+    id "dev.architectury.loom" version "0.12.0-SNAPSHOT" apply false
+    id "io.freefair.lombok" version "6.5.1" apply false
+    id "com.github.johnrengelman.shadow" version "7.1.2" apply false
+    id "io.github.pacifistmc.forgix" version "1.2.6"
+}
+
+architectury {
+    minecraft = rootProject.minecraft_version
+}
+
+subprojects {
+    apply plugin: "dev.architectury.loom"
+    apply plugin: "io.freefair.lombok"
+
+    def targetProjects = ["fabric", "forge", "quilt"]
+
+    if (targetProjects.contains(project.name)) {
+        apply plugin: "com.github.johnrengelman.shadow"
+
+        configurations {
+            common
+            shadowCommon // Don't use shadow from the shadow plugin because we don't want IDEA to index this.
+            compileClasspath.extendsFrom common
+            runtimeClasspath.extendsFrom common
+            developmentQuilt.extendsFrom common
+        }
+
+        shadowJar {
+            exclude "org.jetbrains"
+            exclude "org.intellij"
+        }
+    }
+
+    loom {
+        silentMojangMappingsLicense()
+    }
+
+    dependencies {
+        minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
+        mappings loom.officialMojangMappings()
+
+        def kyoriVer = "4.11.0"
+        def deps = [
+                "net.kyori:adventure-api:${kyoriVer}",
+                "net.kyori:adventure-text-minimessage:${kyoriVer}",
+                "net.kyori:adventure-text-serializer-legacy:${kyoriVer}",
+                "org.hjson:hjson:3.0.0"
+        ]
+
+        if (targetProjects.contains(project.name))
+            deps.forEach { shadowCommon implementation(it) }
+        else deps.forEach { implementation(it) }
+    }
+}
+
+allprojects {
+    apply plugin: "java"
+    apply plugin: "architectury-plugin"
+    apply plugin: "maven-publish"
+
+    archivesBaseName = rootProject.archives_base_name
+    version = rootProject.mod_version
+    group = rootProject.maven_group
+
+    repositories {
+        mavenLocal()
+        maven { url "https://cursemaven.com" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+        options.release = 17
+    }
+
+    java {
+        withSourcesJar()
+    }
+}
+
+forgix {
+    group = "com.ptsmods.chattix"
+    outputDir = "build/libs"
+    mergedJarName = "${archivesBaseName}-${project.version}_${project.minecraft_version}.jar"
+
+    fabric {
+        additionalRelocate("net.kyori.adventure", "com.ptsmods.chattix.libs.adventure")
+        additionalRelocate("net.kyori.examination", "com.ptsmods.chattix.libs.examination")
+        additionalRelocate("org.hjson", "com.ptsmods.chattix.libs.hjson")
+
+        return null
+    }
+
+    forge {
+        additionalRelocate("net.kyori.adventure", "com.ptsmods.chattix.libs.adventure")
+        additionalRelocate("net.kyori.examination", "com.ptsmods.chattix.libs.examination")
+        additionalRelocate("org.hjson", "com.ptsmods.chattix.libs.hjson")
+
+        return null
+    }
+
+    quilt {
+        additionalRelocate("net.kyori.adventure", "com.ptsmods.chattix.libs.adventure")
+        additionalRelocate("net.kyori.examination", "com.ptsmods.chattix.libs.examination")
+        additionalRelocate("org.hjson", "com.ptsmods.chattix.libs.hjson")
+
+        return null
+    }
+}
+
+task doMerge {
+    dependsOn(":fabric:build", ":forge:build", ":quilt:build")
+    finalizedBy(mergeJars)
+}
+
+tasks.build.dependsOn(tasks.doMerge)

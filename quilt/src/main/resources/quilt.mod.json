@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "mixin": [
+    "chattix-common.mixins.json"
+  ],
+  "quilt_loader": {
+    "group": "${group}",
+    "id": "chattix",
+    "version": "${version}",
+    "name": "Chattix",
+    "description": "Style chat messages just the way you want it!",
+    "authors": [
+      "PlanetTeamSpeak"
+    ],
+    "contact": {
+      "homepage": "https://www.curseforge.com/minecraft/mc-mods/chattix",
+      "sources": "https://github.com/PlanetTeamSpeakk/Chattix"
+    },
+    "license": "GNU GPLv3",
+    "icon": "assets/chattix/icon.png",
+    "intermediate_mappings": "net.fabricmc:intermediary",
+    "environment": "*",
+    "entrypoints": {
+      "init": [
+        "com.ptsmods.chattix.quilt.ChattixQuilt"
+      ]
+    },
+    "depends": [
+      {
+        "id": "quilt_loader",
+        "version": "*"
+      },
+      {
+        "id": "quilt_base",
+        "version": "*"
+      },
+      {
+        "id": "minecraft",
+        "version": ">=1.19.2"
+      },
+      {
+        "id": "architectury",
+        "version": ">=6.2.43"
+      }
+    ]
+  }
+}

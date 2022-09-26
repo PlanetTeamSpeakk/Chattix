@@ -1,0 +1,58 @@
+{
+  // This file uses the Hjson format, for more information, please visit this page: https://hjson.github.io/
+
+  config_version: 1 // This is the version of this config format, please do not change this.
+
+  // All formats allow for use of the minimessage format, for more information on its syntax, have a look here:
+  // https://docs.adventure.kyori.net/minimessage/format.html
+  formatting: {
+    enabled: true // Whether the chat formatting feature should be enabled.
+    // The format to default to when there's no specific format.
+    // Have a look at https://chattix.ptsmods.com to see what placeholders you can use here.
+    format: "<%luckperms_prefix%%displayname%%luckperms_suffix%> %message%"
+
+    // Formats can be ordered by group. A player is considered a member of a group if they have the
+    // chattix.group.<group> permission. The first group in this list a player is a member of is the group that will be used.
+    // If a player is not a member of any group, the format will default to the one set above.
+
+    // Using this feature REQUIRES that LuckPerms be installed.
+    groups: {
+      enabled: false
+      // If a group only has a format, this format applies to all worlds.
+      owner: "<red><b>GOD</b></red> %luckperms_prefix%<red>%displayname%</red>%luckperms_suffix%: %message%"
+
+      // Groups can also be a list in which case its entries must be objects with a format and optionally a world.
+      knight: [
+        {
+          // Not supplying a world makes it the default for this group.
+          format: "<white><b>Knight</b></white> %luckperms_prefix%%displayname%%luckperms_suffix%: %message%"
+        }
+        {
+          world: "minecraft:overworld"
+          format: "<dark_red><b>NETHER</b></dark_red> <white><b>Knight</b></white> %luckperms_prefix%%displayname%%luckperms_suffix%: %message%"
+        }
+      ]
+    },
+
+    // You can also supply a format for different worlds
+    // These formats take precedence over both the default and the group-specific formats,
+    // unless the group has a specific format for the same world.
+    worlds: {
+      "minecraft:nether": "<dark_red><b>NETHER</b></dark_red> %luckperms_prefix%%displayname%%luckperms_suffix%: %message%"
+    }
+  },
+
+  // Only send messages to either close players, or players in the same world.
+  vicinity_chat: {
+    enabled: false
+    radius: 100 // If set to 0 or less while vicinity chat is enabled, messages will be sent to everyone in the same world.
+  },
+
+  // When enabled, players will hear the given sound whenever their name is mentioned in chat.
+  // Players can individually toggle this feature using the /mentions command.
+  // Doing so while mentions are enabled will disable them, otherwise it will enable them.
+  mentions: {
+    enabled: true,
+    sound: "minecraft:block.note_block.bell"
+  }
+}

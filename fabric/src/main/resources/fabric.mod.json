@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "chattix",
+  "version": "${version}",
+  "name": "Chattix",
+  "description": "Format messages to your liking!",
+  "authors": [
+    "PlanetTeamSpeak"
+  ],
+  "contact": {
+    "homepage": "https://www.curseforge.com/minecraft/mc-mods/chattix",
+    "sources": "https://github.com/PlanetTeamSpeakk/Chattix"
+  },
+  "license": "GNU GPLv3",
+  "icon": "assets/chattix/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.ptsmods.chattix.fabric.ChattixFabric"
+    ]
+  },
+  "mixins": [
+    "chattix-common.mixins.json"
+  ],
+  "depends": {
+    "fabric": "*",
+    "minecraft": ">=1.19.2",
+    "architectury": ">=6.2.43"
+  },
+  "recommends": {
+    "luckperms": "*"
+  }
+}

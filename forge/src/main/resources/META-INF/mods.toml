@@ -1,0 +1,35 @@
+modLoader = "javafml"
+loaderVersion = "[43,)"
+issueTrackerURL = "https://github.com/PlanetTeamSpeakk/Chattix/issues"
+license = "GNU GPLv3"
+
+[[mods]]
+modId = "chattix"
+version = "${version}"
+displayName = "Chattix"
+authors = "PlanetTeamSpeak"
+description = '''
+Style chat messages just the way you want it!
+'''
+logoFile = "assets/chattix/icon.png"
+
+[[dependencies.chattix]]
+modId = "forge"
+mandatory = true
+versionRange = "[43,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.chattix]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.19.2,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.chattix]]
+modId = "architectury"
+mandatory = true
+versionRange = "[6.2.43,)"
+ordering = "AFTER"
+side = "BOTH"
