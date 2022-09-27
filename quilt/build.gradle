@@ -29,6 +29,8 @@ dependencies {
         exclude group: "net.fabricmc.fabric-api"
     }
 
+    include modApi("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")
+
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionQuilt")) { transitive false }
     common(project(path: ":fabric-like", configuration: "namedElements")) { transitive false }

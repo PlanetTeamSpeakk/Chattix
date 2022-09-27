@@ -24,6 +24,7 @@ dependencies {
     modImplementation "curse.maven:luckperms-431733:3995680"
     modApi "me.lucko:fabric-permissions-api:0.2-SNAPSHOT"
 //    modImplementation "curse.maven:morecommands-250823:4000017"
+    include modApi("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")
 
     common(project(path: ":common", configuration: "namedElements")) { transitive false }
     shadowCommon(project(path: ":common", configuration: "transformProductionFabric")) { transitive false }
