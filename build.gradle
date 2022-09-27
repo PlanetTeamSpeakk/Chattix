@@ -84,28 +84,35 @@ forgix {
     group = "com.ptsmods.chattix"
     outputDir = "build/libs"
     mergedJarName = "${archivesBaseName}-${project.version}_${project.minecraft_version}.jar"
+    def prefix = "com.ptsmods.chattix.libs."
 
     fabric {
-        additionalRelocate("net.kyori.adventure", "com.ptsmods.chattix.libs.adventure")
-        additionalRelocate("net.kyori.examination", "com.ptsmods.chattix.libs.examination")
-        additionalRelocate("org.hjson", "com.ptsmods.chattix.libs.hjson")
+        additionalRelocate("net.kyori.adventure", prefix + "adventure")
+        additionalRelocate("net.kyori.examination", prefix + "examination")
+        additionalRelocate("org.hjson", prefix + "hjson")
 
+        additionalRelocate("org.intellij.lang.annotations", prefix + "ij_annotations")
+        additionalRelocate("org.jetbrains.annotations", prefix + "jb_annotations")
         return null
     }
 
     forge {
-        additionalRelocate("net.kyori.adventure", "com.ptsmods.chattix.libs.adventure")
-        additionalRelocate("net.kyori.examination", "com.ptsmods.chattix.libs.examination")
-        additionalRelocate("org.hjson", "com.ptsmods.chattix.libs.hjson")
+        additionalRelocate("net.kyori.adventure", prefix + "adventure")
+        additionalRelocate("net.kyori.examination", prefix + "examination")
+        additionalRelocate("org.hjson", prefix + "hjson")
 
+        additionalRelocate("org.intellij.lang.annotations", prefix + "ij_annotations")
+        additionalRelocate("org.jetbrains.annotations", prefix + "jb_annotations")
         return null
     }
 
     quilt {
-        additionalRelocate("net.kyori.adventure", "com.ptsmods.chattix.libs.adventure")
-        additionalRelocate("net.kyori.examination", "com.ptsmods.chattix.libs.examination")
-        additionalRelocate("org.hjson", "com.ptsmods.chattix.libs.hjson")
+        additionalRelocate("net.kyori.adventure", prefix + "adventure")
+        additionalRelocate("net.kyori.examination", prefix + "examination")
+        additionalRelocate("org.hjson", prefix + "hjson")
 
+        additionalRelocate("org.intellij.lang.annotations", prefix + "ij_annotations")
+        additionalRelocate("org.jetbrains.annotations", prefix + "jb_annotations")
         return null
     }
 }
