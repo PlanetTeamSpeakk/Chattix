@@ -3,6 +3,7 @@ package com.ptsmods.chattix;
 import com.ptsmods.chattix.commands.ChattixCommand;
 import com.ptsmods.chattix.commands.IgnoreCommand;
 import com.ptsmods.chattix.commands.MentionsCommand;
+import com.ptsmods.chattix.commands.MuteCommand;
 import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.placeholder.Placeholders;
 import com.ptsmods.chattix.util.VanillaComponentSerializer;
@@ -12,7 +13,10 @@ import dev.architectury.event.events.common.PlayerEvent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.minecraft.ChatFormatting;
+import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,7 +38,11 @@ public class Chattix {
         Placeholders.init(); // We call this for the same reason.
 
         ChatEvent.DECORATE.register((player, component) -> {
-            if (!formattingMessageArgument && player != null && Config.getInstance().getFormattingConfig().isEnabled())
+            if (player != null && Config.getInstance().isMuted(player))
+                component.set(Component.literal("You cannot speak as you are muted! Reason: ")
+                        .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))
+                        .append(Config.getInstance().getMuteReason(player)));
+            else if (!formattingMessageArgument && player != null && Config.getInstance().getFormattingConfig().isEnabled())
                 component.set(format(player, VanillaComponentSerializer.vanilla().deserialize(component.get())));
         });
 
@@ -42,6 +50,7 @@ public class Chattix {
             ChattixCommand.register(dispatcher);
             IgnoreCommand.register(dispatcher);
             MentionsCommand.register(dispatcher);
+            if (selection == Commands.CommandSelection.DEDICATED) MuteCommand.register(dispatcher);
         });
 
         PlayerEvent.PLAYER_JOIN.register(player -> Config.getInstance().getIgnored().refresh(player.getUUID()));
