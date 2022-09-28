@@ -33,7 +33,7 @@ public class ChatCommand {
                         "Chat has been cleared by a moderator.")
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)
                         .withBold(true)), false);
-        ctx.getSource().sendSuccess(Component.literal("Text has been cleared for everyone without the" +
+        ctx.getSource().sendSuccess(Component.literal("Chat has been cleared for everyone without the " +
                 "chattix.bypass permission."), true);
 
         return 1;
