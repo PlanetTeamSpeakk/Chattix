@@ -1,11 +1,13 @@
 package com.ptsmods.chattix.commands;
 
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.ptsmods.chattix.config.Config;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.players.GameProfileCache;
 
 import java.util.Optional;
 import java.util.Set;
@@ -25,9 +27,11 @@ public class IgnoreCommand {
                         return 0;
                     }
 
+                    GameProfileCache profileCache = ctx.getSource().getServer().getProfileCache();
                     ctx.getSource().sendSuccess(Component.literal("You're currently ignoring the following players: " + ignored.stream()
                             .map(id -> Optional.ofNullable(ctx.getSource().getServer().getPlayerList().getPlayer(id))
                                     .map(player -> player.getGameProfile().getName())
+                                    .or(() -> profileCache.get(id).map(GameProfile::getName))
                                     .orElseGet(id::toString))
                             .collect(Collectors.joining(", "))), false);
 
