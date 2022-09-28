@@ -65,7 +65,10 @@ public class Chattix {
             IgnoreCommand.register(dispatcher);
             MentionsCommand.register(dispatcher);
             ChatCommand.register(dispatcher);
-            if (selection == Commands.CommandSelection.DEDICATED) MuteCommand.register(dispatcher);
+
+            if (selection != Commands.CommandSelection.DEDICATED) return;
+            MuteCommand.register(dispatcher);
+            BroadcastCommand.register(dispatcher);
         });
 
         PlayerEvent.PLAYER_JOIN.register(player -> Config.getInstance().getIgnored().refresh(player.getUUID()));
@@ -78,12 +81,14 @@ public class Chattix {
 
     public static Component format(ServerPlayer player, net.kyori.adventure.text.Component message, String format) {
         TextReplacementConfig placeholderReplacement = Placeholders.createReplacementConfig(player, message);
-        MiniMessage miniMessage = MiniMessage.builder()
+        return VanillaComponentSerializer.vanilla().serialize(createMiniMessage(placeholderReplacement).deserialize(format));
+    }
+
+    public static MiniMessage createMiniMessage(TextReplacementConfig placeholderReplacement) {
+        return MiniMessage.builder()
                 .tags(TagResolver.standard())
                 .postProcessor(post -> post.replaceText(placeholderReplacement))
                 .build();
-
-        return VanillaComponentSerializer.vanilla().serialize(miniMessage.deserialize(format));
     }
 
     public static void setFormattingMessageArgument(boolean formattingMessageArgument) {

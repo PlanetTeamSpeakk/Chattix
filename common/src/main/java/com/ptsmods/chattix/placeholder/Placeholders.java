@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 @UtilityClass
 public class Placeholders {
+    public static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("(\\\\)?(%([A-Za-z_\\-]*):?([A-Za-z_\\-]*?)%)");
     private final Map<String, Placeholder> placeholders = ImmutableMap.<String, Placeholder>builder()
             .put("message", new MessagePlaceholder())
             .put("luckperms_user_meta", new LuckPermsUserMetaPlaceholder())
@@ -28,13 +29,12 @@ public class Placeholders {
             .put("old_name", new OldNamePlaceholder()) // Only valid in join changed name format
             .put("world", new WorldPlaceholder())
             .build();
-    private final Pattern placeholderPattern = Pattern.compile("(\\\\)?(%([A-Za-z_\\-]*):?([A-Za-z_\\-]*?)%)");
 
     public static void init() {} // Init fields and load placeholder classes.
 
     public TextReplacementConfig createReplacementConfig(ServerPlayer player, Component message) {
         return TextReplacementConfig.builder()
-                .match(placeholderPattern)
+                .match(PLACEHOLDER_PATTERN)
                 .replacement((res, builder) -> {
                     if (player == null || res.group(1) != null || !placeholders.containsKey(res.group(3))) return Component.text(res.group(2));
 
