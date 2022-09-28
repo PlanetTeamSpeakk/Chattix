@@ -1,15 +1,15 @@
 package com.ptsmods.chattix;
 
-import com.ptsmods.chattix.commands.ChattixCommand;
-import com.ptsmods.chattix.commands.IgnoreCommand;
-import com.ptsmods.chattix.commands.MentionsCommand;
-import com.ptsmods.chattix.commands.MuteCommand;
+import com.ptsmods.chattix.commands.*;
 import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.placeholder.Placeholders;
+import com.ptsmods.chattix.util.ChattixArch;
 import com.ptsmods.chattix.util.VanillaComponentSerializer;
 import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.PlayerEvent;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -21,10 +21,16 @@ import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 public class Chattix {
     public static final String MOD_ID = "chattix";
     public static final Logger LOG = LogManager.getLogger();
+    private static final Path chatDisabledFile = Config.getConfigFile().resolveSibling("chat_disabled");
     private static boolean formattingMessageArgument = false;
+    @Getter
+    private static boolean chatDisabled = Files.exists(chatDisabledFile);
 
     public static void init() {
         Config.load();
@@ -37,12 +43,20 @@ public class Chattix {
         format(null, net.kyori.adventure.text.Component.empty());
         Placeholders.init(); // We call this for the same reason.
 
+        ChattixArch.registerPermission("chattix.bypass", false);
+
         ChatEvent.DECORATE.register((player, component) -> {
-            if (player != null && Config.getInstance().isMuted(player))
+            if (player == null) return;
+
+            //noinspection ConstantConditions // IntelliJ does not seem to recognise chatDisabled changes
+            if (chatDisabled && !ChattixArch.hasPermission(player, "chattix.bypass"))
+                component.set(Component.literal("Chat is currently disabled!")
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+            else if (Config.getInstance().isMuted(player))
                 component.set(Component.literal("You cannot speak as you are muted! Reason: ")
                         .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))
                         .append(Config.getInstance().getMuteReason(player)));
-            else if (!formattingMessageArgument && player != null && Config.getInstance().getFormattingConfig().isEnabled())
+            else if (!formattingMessageArgument && Config.getInstance().getFormattingConfig().isEnabled())
                 component.set(format(player, VanillaComponentSerializer.vanilla().deserialize(component.get())));
         });
 
@@ -50,6 +64,7 @@ public class Chattix {
             ChattixCommand.register(dispatcher);
             IgnoreCommand.register(dispatcher);
             MentionsCommand.register(dispatcher);
+            DisableChatCommand.register(dispatcher);
             if (selection == Commands.CommandSelection.DEDICATED) MuteCommand.register(dispatcher);
         });
 
@@ -73,5 +88,13 @@ public class Chattix {
 
     public static void setFormattingMessageArgument(boolean formattingMessageArgument) {
         Chattix.formattingMessageArgument = formattingMessageArgument;
+    }
+
+    @SneakyThrows
+    public static void setChatDisabled(boolean chatDisabled) {
+        Chattix.chatDisabled = chatDisabled;
+
+        if (chatDisabled && !Files.exists(chatDisabledFile)) Files.createFile(chatDisabledFile);
+        else if (!chatDisabled) Files.deleteIfExists(chatDisabledFile);
     }
 }

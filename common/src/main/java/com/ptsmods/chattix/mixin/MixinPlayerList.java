@@ -1,6 +1,8 @@
 package com.ptsmods.chattix.mixin;
 
+import com.ptsmods.chattix.Chattix;
 import com.ptsmods.chattix.config.Config;
+import com.ptsmods.chattix.util.ChattixArch;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.*;
@@ -27,6 +29,14 @@ public class MixinPlayerList {
     @Inject(at = @At("HEAD"), method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;" +
             "Lnet/minecraft/network/chat/ChatSender;Lnet/minecraft/network/chat/ChatType$Bound;)V", cancellable = true)
     private void broadcastChatMessage(PlayerChatMessage playerChatMessage, Predicate<ServerPlayer> predicate, ServerPlayer player, ChatSender chatSender, ChatType.Bound bound, CallbackInfo cbi) {
+        //noinspection ConstantConditions // Not true, once again.
+        if (Chattix.isChatDisabled() && !ChattixArch.hasPermission(player, "chattix.bypass")) {
+            player.sendSystemMessage(Component.literal("Chat is currently disabled!")
+                    .withStyle(ChatFormatting.RED));
+            cbi.cancel();
+            return;
+        }
+
         if (player == null || !Config.getInstance().isMuted(player)) return;
 
         player.sendSystemMessage(Component.literal("You cannot speak as you are muted! Reason: ")
