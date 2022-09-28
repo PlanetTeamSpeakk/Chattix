@@ -38,6 +38,7 @@ public class MuteCommand {
                             }
 
                             Config.getInstance().unmute(player);
+                            player.sendSystemMessage(Component.literal("You have been unmuted!").withStyle(ChatFormatting.GREEN));
                             ctx.getSource().sendSuccess(Component.literal("Player " + player.getGameProfile().getName() +
                                     " has been unmuted."), true);
 
