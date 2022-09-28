@@ -64,7 +64,7 @@ public class Chattix {
             ChattixCommand.register(dispatcher);
             IgnoreCommand.register(dispatcher);
             MentionsCommand.register(dispatcher);
-            DisableChatCommand.register(dispatcher);
+            ChatCommand.register(dispatcher);
             if (selection == Commands.CommandSelection.DEDICATED) MuteCommand.register(dispatcher);
         });
 
