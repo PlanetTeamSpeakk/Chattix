@@ -1,7 +1,7 @@
 {
   // This file uses the Hjson format, for more information, please visit this page: https://hjson.github.io/
 
-  config_version: 1 // This is the version of this config format, please do not change this.
+  config_version: 2 // This is the version of this config format, please do not change this.
 
   // All formats allow for use of the minimessage format, for more information on its syntax, have a look here:
   // https://docs.adventure.kyori.net/minimessage/format.html
@@ -54,5 +54,19 @@
   mentions: {
     enabled: true,
     sound: "minecraft:block.note_block.bell"
+  }
+
+  // Settings regarding the messages sent when a player joins or leaves
+  join_leave_messages: {
+    enabled: true // If this is disabled, join and leave messages aren't sent at all.
+
+    // The following formats can all use the same placeholders as message formats
+    // For a list of them, have a look at https://chattix.ptsmods.com
+    // Aside from that, they also follow the mini message format which can be found
+    // here: https://docs.adventure.kyori.net/minimessage/format.html
+    join_format: "<yellow>%name% has joined the game</yellow>" // The format to use when a player joins
+    // The format to use when a player who has changed their name since last login joins
+    join_changed_name_format: "<yellow>%name% has joined the game (was %old_name%)</yellow>"
+    leave_format: "<yellow>%name% has left the game</yellow>"  // The format to use when a player leaves
   }
 }

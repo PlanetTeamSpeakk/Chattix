@@ -5,6 +5,7 @@ import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.util.ChattixArch;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
+import net.minecraft.network.Connection;
 import net.minecraft.network.chat.*;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
@@ -62,5 +63,20 @@ public class MixinPlayerList {
         return player == null ? playerList.getPlayers() : Config.getInstance().getVicinityChatConfig().filterRecipients(player).stream()
                 .filter(recipient -> Config.getInstance().hasNotIgnored(recipient, player))
                 .toList();
+    }
+
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;translatable(Ljava/lang/String;[Ljava/lang/Object;)Lnet/minecraft/network/chat/MutableComponent;"), method = "placeNewPlayer")
+    private MutableComponent placeNewPlayer_translatable(String key, Object[] args, Connection connection, ServerPlayer player) {
+        return (MutableComponent) switch (key) {
+            case "multiplayer.player.joined" -> Chattix.format(player, net.kyori.adventure.text.Component.empty(), Config.getInstance().getJoinLeaveConfig().getJoinFormat());
+            case "multiplayer.player.joined.renamed" -> Chattix.format(player, net.kyori.adventure.text.Component.empty(), Config.getInstance().getJoinLeaveConfig().getJoinChangedNameFormat());
+            default -> Component.translatable(key, args);
+        };
+    }
+
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;broadcastSystemMessage(Lnet/minecraft/network/chat/Component;Z)V"), method = "placeNewPlayer")
+    private void placeNewPlayer_broadcastSystemMessage(PlayerList instance, Component message, boolean bl) {
+        if (Config.getInstance().getJoinLeaveConfig().isEnabled())
+            instance.broadcastSystemMessage(message, bl);
     }
 }

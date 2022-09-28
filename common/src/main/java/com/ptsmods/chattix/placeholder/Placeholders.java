@@ -25,6 +25,7 @@ public class Placeholders {
             .put("team_suffix", new TeamSuffixPlaceholder())
             .put("displayname", new DisplayNamePlaceholder())
             .put("name", new NamePlaceholder())
+            .put("old_name", new OldNamePlaceholder()) // Only valid in join changed name format
             .put("world", new WorldPlaceholder())
             .build();
     private final Pattern placeholderPattern = Pattern.compile("(\\\\)?(%([A-Za-z_\\-]*):?([A-Za-z_\\-]*?)%)");
