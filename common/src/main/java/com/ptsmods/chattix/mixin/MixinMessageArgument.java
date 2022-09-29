@@ -31,41 +31,23 @@ public class MixinMessageArgument {
     private static final @Unique DynamicCommandExceptionType ILLEGAL_CHARACTERS = new DynamicCommandExceptionType(o -> Component.literal(
             "That message contains illegal characters! Problematic characters: ").append((Component) o));
 
-    @Inject(at = @At("HEAD"), method = "getMessage")
-    private static void getMessage(CommandContext<CommandSourceStack> ctx, String string, CallbackInfoReturnable<Component> cbi) throws CommandSyntaxException {
-        checkMuted(ctx);
-    }
-
-    @Inject(at = @At("RETURN"), method = "getMessage")
-    private static void getMessageReturn(CommandContext<CommandSourceStack> ctx, String string, CallbackInfoReturnable<Component> cbi) throws CommandSyntaxException {
-        checkFilter(ctx, cbi.getReturnValue());
-    }
-
     @Inject(at = @At("HEAD"), method = "getChatMessage")
     private static void getChatMessage(CommandContext<CommandSourceStack> ctx, String string, CallbackInfoReturnable<Component> cbi) throws CommandSyntaxException {
-        checkMuted(ctx);
-    }
-
-    @Inject(at = @At("RETURN"), method = "getChatMessage")
-    private static void getChatMessageReturn(CommandContext<CommandSourceStack> ctx, String string, CallbackInfoReturnable<MessageArgument.ChatMessage> cbi) throws CommandSyntaxException {
-        checkFilter(ctx, cbi.getReturnValue().signedArgument().signedContent().decorated());
-    }
-
-    private static @Unique void checkMuted(CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException {
         if (ctx.getSource().isPlayer() && Config.getInstance().isMuted(ctx.getSource().getPlayerOrException()))
             throw MUTED.create(ctx.getSource().getPlayerOrException());
 
         //noinspection ConstantConditions // Not true
         if (Chattix.isChatDisabled() && !ctx.getSource().isPlayer() &&
-                !ChattixArch.hasPermission(ctx.getSource().getPlayerOrException(), "chattix.bypass"))
+                !ChattixArch.hasPermission(ctx.getSource().getPlayerOrException(), "chattix.bypass", false))
             throw DISABLED.create();
     }
 
-    private static @Unique void checkFilter(CommandContext<CommandSourceStack> ctx, Component message) throws CommandSyntaxException {
+    @Inject(at = @At("RETURN"), method = "getChatMessage")
+    private static void getChatMessageReturn(CommandContext<CommandSourceStack> ctx, String string, CallbackInfoReturnable<MessageArgument.ChatMessage> cbi) throws CommandSyntaxException {
         //noinspection ConstantConditions // Not true
-        if (!ctx.getSource().isPlayer() || ChattixArch.hasPermission(ctx.getSource().getPlayerOrException(), "chattix.bypass")) return;
+        if (!ctx.getSource().isPlayer() || ChattixArch.hasPermission(ctx.getSource().getPlayerOrException(), "chattix.bypass", false)) return;
 
-        BooleanObjectPair<Component> filter = Chattix.filter(message);
+        BooleanObjectPair<Component> filter = Chattix.filter(cbi.getReturnValue().signedArgument().signedContent().decorated());
         if (!filter.leftBoolean())
             throw ILLEGAL_CHARACTERS.create(filter.right());
     }
