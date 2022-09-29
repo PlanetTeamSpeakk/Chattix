@@ -69,7 +69,7 @@ public class ChattixCommand {
                 .map(FormattingConfig.GroupConfig.Group::getName)
                 .orElse("none")), false);
         source.sendSuccess(Component.literal("Format: " + format), false);
-        source.sendSuccess(Component.literal("Formatted test msg: ").append(Chattix.format(target, net.kyori.adventure.text.Component.text("Hello world!"), format)), false);
+        source.sendSuccess(Component.literal("Formatted test msg: ").append(Chattix.format(target, net.kyori.adventure.text.Component.text("Hello world!"), format, true)), false);
         source.sendSuccess(Component.literal("Current recipients: " + (vicinityChatConfig.isEnabled() ? vicinityChatConfig.filterRecipients(target).stream()
                 .map(player -> player.getGameProfile().getName())
                 .collect(Collectors.joining(", ")) : "everyone")), false);

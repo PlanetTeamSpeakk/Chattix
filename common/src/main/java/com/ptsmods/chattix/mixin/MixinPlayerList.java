@@ -3,6 +3,7 @@ package com.ptsmods.chattix.mixin;
 import com.ptsmods.chattix.Chattix;
 import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.util.ChattixArch;
+import it.unimi.dsi.fastutil.booleans.BooleanObjectPair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
 import net.minecraft.network.Connection;
@@ -27,26 +28,33 @@ import java.util.function.Predicate;
 public class MixinPlayerList {
 
     // Handle mutes
+    @SuppressWarnings("ConstantConditions")
     @Inject(at = @At("HEAD"), method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;" +
             "Lnet/minecraft/network/chat/ChatSender;Lnet/minecraft/network/chat/ChatType$Bound;)V", cancellable = true)
     private void broadcastChatMessage(PlayerChatMessage playerChatMessage, Predicate<ServerPlayer> predicate, ServerPlayer player, ChatSender chatSender, ChatType.Bound bound, CallbackInfo cbi) {
-        //noinspection ConstantConditions // Not true, once again.
         if (Chattix.isChatDisabled() && !ChattixArch.hasPermission(player, "chattix.bypass")) {
             player.sendSystemMessage(Component.literal("Chat is currently disabled!")
                     .withStyle(ChatFormatting.RED));
             cbi.cancel();
-            return;
         }
 
-        if (player == null || !Config.getInstance().isMuted(player)) return;
+        BooleanObjectPair<Component> filter;
+        if (player != null && !ChattixArch.hasPermission(player, "chattix.bypass") && !(filter = Chattix.filter(playerChatMessage.signedContent().plain())).leftBoolean()) {
+            player.sendSystemMessage(Component.literal("That message contains illegal characters! Problematic characters: ")
+                    .withStyle(ChatFormatting.RED)
+                    .append(filter.right()));
+            cbi.cancel();
+        }
 
-        player.sendSystemMessage(Component.literal("You cannot speak as you are muted! Reason: ")
-                .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))
-                .append(Config.getInstance().getMuteReason(player)));
+        if (player != null && Config.getInstance().isMuted(player)) {
+            player.sendSystemMessage(Component.literal("You cannot speak as you are muted! Reason: ")
+                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))
+                    .append(Config.getInstance().getMuteReason(player)));
 
-        Objects.requireNonNull(player.getServer()).sendSystemMessage(Component.literal("Player " + player.getGameProfile().getName() +
-                " tried to speak but is muted!").withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
-        cbi.cancel();
+            Objects.requireNonNull(player.getServer()).sendSystemMessage(Component.literal("Player " + player.getGameProfile().getName() +
+                    " tried to speak but is muted!").withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+            cbi.cancel();
+        }
     }
 
     // Filter recipients to send the chat message to and handle chat mentions
@@ -68,8 +76,8 @@ public class MixinPlayerList {
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/network/chat/Component;translatable(Ljava/lang/String;[Ljava/lang/Object;)Lnet/minecraft/network/chat/MutableComponent;"), method = "placeNewPlayer")
     private MutableComponent placeNewPlayer_translatable(String key, Object[] args, Connection connection, ServerPlayer player) {
         return (MutableComponent) switch (key) {
-            case "multiplayer.player.joined" -> Chattix.format(player, net.kyori.adventure.text.Component.empty(), Config.getInstance().getJoinLeaveConfig().getJoinFormat());
-            case "multiplayer.player.joined.renamed" -> Chattix.format(player, net.kyori.adventure.text.Component.empty(), Config.getInstance().getJoinLeaveConfig().getJoinChangedNameFormat());
+            case "multiplayer.player.joined" -> Chattix.format(player, net.kyori.adventure.text.Component.empty(), Config.getInstance().getJoinLeaveConfig().getJoinFormat(), false);
+            case "multiplayer.player.joined.renamed" -> Chattix.format(player, net.kyori.adventure.text.Component.empty(), Config.getInstance().getJoinLeaveConfig().getJoinChangedNameFormat(), false);
             default -> Component.translatable(key, args);
         };
     }

@@ -2,17 +2,22 @@ package com.ptsmods.chattix;
 
 import com.ptsmods.chattix.commands.*;
 import com.ptsmods.chattix.config.Config;
+import com.ptsmods.chattix.config.FilteringConfig;
 import com.ptsmods.chattix.placeholder.Placeholders;
 import com.ptsmods.chattix.util.ChattixArch;
 import com.ptsmods.chattix.util.VanillaComponentSerializer;
 import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.PlayerEvent;
+import it.unimi.dsi.fastutil.booleans.BooleanObjectPair;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
@@ -76,12 +81,43 @@ public class Chattix {
     }
 
     public static Component format(ServerPlayer player, net.kyori.adventure.text.Component message) {
-        return format(player, message, Config.getInstance().getFormattingConfig().getActiveFormatFor(player));
+        return format(player, message, Config.getInstance().getFormattingConfig().getActiveFormatFor(player), true);
     }
 
-    public static Component format(ServerPlayer player, net.kyori.adventure.text.Component message, String format) {
+    public static Component format(ServerPlayer player, net.kyori.adventure.text.Component message, String format, boolean filter) {
+        //noinspection ConstantConditions
+        if (filter && (player == null || !ChattixArch.hasPermission(player, "chattix.bypass")))
+            message = filter(message).right();
+
         TextReplacementConfig placeholderReplacement = Placeholders.createReplacementConfig(player, message);
         return VanillaComponentSerializer.vanilla().serialize(createMiniMessage(placeholderReplacement).deserialize(format));
+    }
+
+    public static BooleanObjectPair<Component> filter(String text) {
+        return filter(Component.literal(text));
+    }
+
+    public static BooleanObjectPair<Component> filter(Component component) {
+        BooleanObjectPair<net.kyori.adventure.text.Component> filter = filter(VanillaComponentSerializer.vanilla().deserialize(component));
+        return filter.leftBoolean() ? BooleanObjectPair.of(true, component) : BooleanObjectPair.of(false,
+                VanillaComponentSerializer.vanilla().serialize(filter.right()));
+    }
+
+    public static BooleanObjectPair<net.kyori.adventure.text.Component> filter(net.kyori.adventure.text.Component component) {
+        FilteringConfig filteringConfig = Config.getInstance().getFilteringConfig();
+        if (!filteringConfig.enabled()) return BooleanObjectPair.of(true, component);
+
+        String plain = PlainTextComponentSerializer.plainText().serialize(component);
+        if (!filteringConfig.pattern().matcher(plain).matches())
+            return BooleanObjectPair.of(false, component.replaceText(TextReplacementConfig.builder()
+                    .match(filteringConfig.negatedPattern())
+                    .replacement(builder -> builder.style(net.kyori.adventure.text.format.Style.style()
+                            .decorate(TextDecoration.UNDERLINED)
+                            .color(NamedTextColor.RED)
+                            .build()))
+                    .build()));
+
+        return BooleanObjectPair.of(true, component);
     }
 
     public static MiniMessage createMiniMessage(TextReplacementConfig placeholderReplacement) {

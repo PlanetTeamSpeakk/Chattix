@@ -35,7 +35,8 @@ import static com.ptsmods.chattix.Chattix.LOG;
 public class Config {
     @Getter
     private static final Path configFile = Platform.getConfigFolder().resolve("chattix/config.hjson");
-    public static final Config DEFAULT = new Config(1, FormattingConfig.DEFAULT, VicinityChatConfig.DEFAULT, MentionsConfig.DEFAULT, JoinLeaveConfig.DEFAULT);
+    public static final Config DEFAULT = new Config(2, FormattingConfig.DEFAULT, VicinityChatConfig.DEFAULT, MentionsConfig.DEFAULT,
+            JoinLeaveConfig.DEFAULT, FilteringConfig.DEFAULT);
     private static final Path ignoredPath = getConfigFile().resolveSibling("ignored/");
     private static final Path mutedPath = getConfigFile().resolveSibling("muted.json");
     private static final Int2ObjectMap<ConfigUpgrade> upgrades = new Int2ObjectLinkedOpenHashMap<>();
@@ -52,6 +53,7 @@ public class Config {
     private final VicinityChatConfig vicinityChatConfig;
     private final MentionsConfig mentionsConfig;
     private final JoinLeaveConfig joinLeaveConfig;
+    private final FilteringConfig filteringConfig;
     private final LoadingCache<UUID, Set<UUID>> ignored = CacheBuilder.newBuilder().build(new CacheLoader<>() {
         @NonNull
         @Override
@@ -82,7 +84,7 @@ public class Config {
         try {
             config = JsonValue.readHjson(new BufferedReader(new InputStreamReader(Files.newInputStream(configFile)))).asObject();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Your config file could not be read! Perhaps it contains invalid syntax?", e);
         }
 
         int sourceVersion;
@@ -107,8 +109,9 @@ public class Config {
         VicinityChatConfig vicinityChatConfig = config.get("vicinity_chat") == null ? VicinityChatConfig.DEFAULT : VicinityChatConfig.fromJson(config.get("vicinity_chat").asObject());
         MentionsConfig mentionsConfig = config.get("mentions") == null ? MentionsConfig.DEFAULT : MentionsConfig.fromJson(config.get("mentions").asObject());
         JoinLeaveConfig joinLeaveConfig = config.get("join_leave_messages") == null ? JoinLeaveConfig.DEFAULT : JoinLeaveConfig.fromJson(config.get("join_leave_messages").asObject());
+        FilteringConfig filteringConfig = config.get("filtering") == null ? FilteringConfig.DEFAULT : FilteringConfig.fromJson(config.get("filtering").asObject());
 
-        instance = new Config(version, formattingConfig, vicinityChatConfig, mentionsConfig, joinLeaveConfig);
+        instance = new Config(version, formattingConfig, vicinityChatConfig, mentionsConfig, joinLeaveConfig, filteringConfig);
 
         if (Files.exists(mutedPath)) try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(mutedPath)))) {
             //noinspection UnstableApiUsage

@@ -41,11 +41,12 @@ subprojects {
         minecraft "com.mojang:minecraft:${rootProject.minecraft_version}"
         mappings loom.officialMojangMappings()
 
-        def kyoriVer = "4.11.0"
+        def adventureVersion = "4.11.0"
         def deps = [
-                "net.kyori:adventure-api:${kyoriVer}",
-                "net.kyori:adventure-text-minimessage:${kyoriVer}",
-                "net.kyori:adventure-text-serializer-legacy:${kyoriVer}",
+                "net.kyori:adventure-api:${adventureVersion}",
+                "net.kyori:adventure-text-minimessage:${adventureVersion}",
+                "net.kyori:adventure-text-serializer-legacy:${adventureVersion}",
+                "net.kyori:adventure-text-serializer-plain:${adventureVersion}",
                 "org.hjson:hjson:3.0.0"
         ]
 

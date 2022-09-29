@@ -69,4 +69,12 @@
     join_changed_name_format: "<yellow>%name% has joined the game (was %old_name%)</yellow>"
     leave_format: "<yellow>%name% has left the game</yellow>"  // The format to use when a player leaves
   }
+
+  // Chat filtering, filters any characters that are not allowed.
+  filtering: {
+    enabled: false
+    // All characters that should be allowed when filtering, will be enclosed in a regex character group.
+    // Modifying this requires knowledge of Regex, so keep that in mind.
+    pattern: "\\w\\s.,&:+=\\-*/'\";?!@#$%<>À-ÖØ-öø-ÿ"
+  }
 }

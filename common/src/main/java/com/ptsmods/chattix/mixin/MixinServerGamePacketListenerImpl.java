@@ -31,6 +31,6 @@ public class MixinServerGamePacketListenerImpl {
     private void onDisconnect_broadcastSystemMessage(PlayerList instance, Component component, boolean bl) {
         if (Config.getInstance().getJoinLeaveConfig().isEnabled())
             instance.broadcastSystemMessage(Chattix.format(player, net.kyori.adventure.text.Component.empty(),
-                    Config.getInstance().getJoinLeaveConfig().getLeaveFormat()), bl);
+                    Config.getInstance().getJoinLeaveConfig().getLeaveFormat(), false), bl);
     }
 }
