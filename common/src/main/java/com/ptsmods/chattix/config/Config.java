@@ -41,7 +41,7 @@ public class Config {
     private static final Int2ObjectMap<ConfigUpgrade> upgrades = new Int2ObjectLinkedOpenHashMap<>();
     static final Gson gson = new GsonBuilder()
             .registerTypeHierarchyAdapter(Component.class, new Component.Serializer())
-            .registerTypeHierarchyAdapter(Style .class, new Style.Serializer())
+            .registerTypeHierarchyAdapter(Style.class, new Style.Serializer())
             .registerTypeAdapterFactory(new LowerCaseEnumTypeAdapterFactory())
             .setPrettyPrinting()
             .create();
