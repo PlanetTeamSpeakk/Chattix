@@ -87,6 +87,8 @@ forgix {
     def prefix = "com.ptsmods.chattix.libs."
 
     fabric {
+        jarLocation = "build/libs/Chattix-${project.version}.jar"
+
         additionalRelocate("net.kyori.adventure", prefix + "adventure")
         additionalRelocate("net.kyori.examination", prefix + "examination")
         additionalRelocate("org.hjson", prefix + "hjson")
@@ -97,6 +99,8 @@ forgix {
     }
 
     forge {
+        jarLocation = "build/libs/Chattix-${project.version}.jar"
+
         additionalRelocate("net.kyori.adventure", prefix + "adventure")
         additionalRelocate("net.kyori.examination", prefix + "examination")
         additionalRelocate("org.hjson", prefix + "hjson")
@@ -107,6 +111,8 @@ forgix {
     }
 
     quilt {
+        jarLocation = "build/libs/Chattix-${project.version}.jar"
+
         additionalRelocate("net.kyori.adventure", prefix + "adventure")
         additionalRelocate("net.kyori.examination", prefix + "examination")
         additionalRelocate("org.hjson", prefix + "hjson")
