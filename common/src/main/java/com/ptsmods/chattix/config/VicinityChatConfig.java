@@ -34,9 +34,11 @@ public class VicinityChatConfig {
                 .filter(recipient -> global || recipient.getLevel() == player.getLevel() && (radius <= 0 || recipient.distanceToSqr(player) < max))
                 .toList();
 
-        if (recipients.isEmpty() || recipients.stream().allMatch(recipient -> recipient == player))
+        if (recipients.isEmpty() || recipients.stream().allMatch(recipient -> recipient == player)) {
             player.sendSystemMessage(Component.literal("No one seems to have heard you as no one was nearby.")
                     .withStyle(ChatFormatting.RED));
+            return Collections.emptyList();
+        }
 
         return recipients;
     }
