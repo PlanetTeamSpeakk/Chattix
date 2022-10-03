@@ -18,7 +18,7 @@ public class BroadcastCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         ChattixArch.registerPermission("chattix.broadcast", false);
         dispatcher.register(literal("broadcast")
-                .requires(stack -> ChattixArch.hasPermission(stack, "chattix.broadcast"))
+                .requires(stack -> ChattixArch.hasPermission(stack, "chattix.broadcast", false))
                 .then(argument("message", MessageArgument.message())
                         .executes(ctx -> {
                             net.minecraft.network.chat.Component message = MessageArgument.getMessage(ctx, "message");

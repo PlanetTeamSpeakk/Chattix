@@ -3,6 +3,7 @@ package com.ptsmods.chattix;
 import com.ptsmods.chattix.commands.*;
 import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.config.FilteringConfig;
+import com.ptsmods.chattix.config.VicinityChatConfig;
 import com.ptsmods.chattix.placeholder.Placeholders;
 import com.ptsmods.chattix.util.ChattixArch;
 import com.ptsmods.chattix.util.VanillaComponentSerializer;
@@ -54,7 +55,7 @@ public class Chattix {
             if (player == null) return;
 
             //noinspection ConstantConditions // IntelliJ does not seem to recognise chatDisabled changes
-            if (chatDisabled && !ChattixArch.hasPermission(player, "chattix.bypass"))
+            if (chatDisabled && !ChattixArch.hasPermission(player, "chattix.bypass", false))
                 component.set(Component.literal("Chat is currently disabled!")
                     .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
             else if (Config.getInstance().isMuted(player))
@@ -67,13 +68,14 @@ public class Chattix {
 
         CommandRegistrationEvent.EVENT.register((dispatcher, registry, selection) -> {
             ChattixCommand.register(dispatcher);
-            IgnoreCommand.register(dispatcher);
-            MentionsCommand.register(dispatcher);
             ChatCommand.register(dispatcher);
 
             if (selection != Commands.CommandSelection.DEDICATED) return;
+            IgnoreCommand.register(dispatcher);
+            MentionsCommand.register(dispatcher);
             MuteCommand.register(dispatcher);
             BroadcastCommand.register(dispatcher);
+            LocalCommand.register(dispatcher);
         });
 
         PlayerEvent.PLAYER_JOIN.register(player -> Config.getInstance().getIgnored().refresh(player.getUUID()));
@@ -85,12 +87,22 @@ public class Chattix {
     }
 
     public static Component format(ServerPlayer player, net.kyori.adventure.text.Component message, String format, boolean filter) {
+        return format(player, message, format, filter, false);
+    }
+
+    public static Component format(ServerPlayer player, net.kyori.adventure.text.Component message, String format, boolean filter, boolean ignoreLocal) {
         //noinspection ConstantConditions
-        if (filter && (player == null || !ChattixArch.hasPermission(player, "chattix.bypass")))
+        if (filter && (player == null || !ChattixArch.hasPermission(player, "chattix.bypass", false)))
             message = filter(message).right();
 
+        VicinityChatConfig vicinityChatConfig = Config.getInstance().getVicinityChatConfig();
         TextReplacementConfig placeholderReplacement = Placeholders.createReplacementConfig(player, message);
-        return VanillaComponentSerializer.vanilla().serialize(createMiniMessage(placeholderReplacement).deserialize(format));
+        Component output = VanillaComponentSerializer.vanilla().serialize(createMiniMessage(placeholderReplacement).deserialize(format));
+
+        return player != null && !ignoreLocal && vicinityChatConfig.isEnabled() && vicinityChatConfig.getLocalChatConfig().isEnabledFor(player) ? Component.empty()
+                .append(format(player, net.kyori.adventure.text.Component.empty(), Config.getInstance().getVicinityChatConfig().getLocalChatConfig().getPrefix(),
+                        false, true))
+                .append(output) : output;
     }
 
     public static BooleanObjectPair<Component> filter(String text) {
@@ -138,4 +150,6 @@ public class Chattix {
         if (chatDisabled && !Files.exists(chatDisabledFile)) Files.createFile(chatDisabledFile);
         else if (!chatDisabled) Files.deleteIfExists(chatDisabledFile);
     }
+
+
 }

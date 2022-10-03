@@ -22,6 +22,15 @@ public class UpgradeV1 implements ConfigUpgrade {
         filteringConfig.set("pattern", "\\\\w\\\\s.,&:+=\\\\-*/'\\\";?!@#$%<>À-ÖØ-öø-ÿ");
         config.set("filtering", filteringConfig);
 
+        JsonObject vicinityChatConfig = config.get("vicinity_chat") == null ? null : config.get("vicinity_chat").asObject();
+        if (vicinityChatConfig != null) {
+            JsonObject localChatConfig = new JsonObject();
+            localChatConfig.set("enabled", true);
+            localChatConfig.set("default", true);
+            localChatConfig.set("prefix", "<dark_green><b>LOCAL</b></dark_green> ");
+            vicinityChatConfig.set("local_chat", localChatConfig);
+        }
+
         return config;
     }
 }

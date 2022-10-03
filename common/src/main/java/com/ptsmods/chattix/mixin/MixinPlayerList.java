@@ -32,14 +32,14 @@ public class MixinPlayerList {
     @Inject(at = @At("HEAD"), method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;" +
             "Lnet/minecraft/network/chat/ChatSender;Lnet/minecraft/network/chat/ChatType$Bound;)V", cancellable = true)
     private void broadcastChatMessage(PlayerChatMessage playerChatMessage, Predicate<ServerPlayer> predicate, ServerPlayer player, ChatSender chatSender, ChatType.Bound bound, CallbackInfo cbi) {
-        if (Chattix.isChatDisabled() && !ChattixArch.hasPermission(player, "chattix.bypass")) {
+        if (Chattix.isChatDisabled() && !ChattixArch.hasPermission(player, "chattix.bypass", false)) {
             player.sendSystemMessage(Component.literal("Chat is currently disabled!")
                     .withStyle(ChatFormatting.RED));
             cbi.cancel();
         }
 
         BooleanObjectPair<Component> filter;
-        if (player != null && !ChattixArch.hasPermission(player, "chattix.bypass") && !(filter = Chattix.filter(playerChatMessage.signedContent().plain())).leftBoolean()) {
+        if (player != null && !ChattixArch.hasPermission(player, "chattix.bypass", false) && !(filter = Chattix.filter(playerChatMessage.signedContent().plain())).leftBoolean()) {
             player.sendSystemMessage(Component.literal("That message contains illegal characters! Problematic characters: ")
                     .withStyle(ChatFormatting.RED)
                     .append(filter.right()));

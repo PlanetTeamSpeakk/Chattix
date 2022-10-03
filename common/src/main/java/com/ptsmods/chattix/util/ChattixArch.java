@@ -7,12 +7,12 @@ import net.minecraft.server.level.ServerPlayer;
 public class ChattixArch {
 
     @ExpectPlatform
-    public static boolean hasPermission(CommandSourceStack stack, String permission) {
+    public static boolean hasPermission(CommandSourceStack stack, String permission, boolean defaultValue) {
         throw new AssertionError("This shouldn't happen.");
     }
 
     @ExpectPlatform
-    public static boolean hasPermission(ServerPlayer player, String permission) {
+    public static boolean hasPermission(ServerPlayer player, String permission, boolean defaultValue) {
         throw new AssertionError("This shouldn't happen.");
     }
 

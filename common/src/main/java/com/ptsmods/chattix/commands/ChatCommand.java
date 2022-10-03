@@ -16,7 +16,7 @@ public class ChatCommand {
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         ChattixArch.registerPermission("chattix.managechat", false);
         dispatcher.register(literal("chat")
-                .requires(stack -> ChattixArch.hasPermission(stack, "chattix.managechat"))
+                .requires(stack -> ChattixArch.hasPermission(stack, "chattix.managechat", false))
                 .then(literal("clear").executes(ChatCommand::executeClear))
                 .then(literal("disable").executes(ChatCommand::executeDisable)));
     }
@@ -27,7 +27,7 @@ public class ChatCommand {
             clearComponent.append(Component.literal("\n"));
 
         ctx.getSource().getServer().getPlayerList().getPlayers().stream()
-                .filter(player -> !ChattixArch.hasPermission(player, "chattix.bypass"))
+                .filter(player -> !ChattixArch.hasPermission(player, "chattix.bypass", false))
                 .forEach(player -> player.sendSystemMessage(clearComponent));
         ctx.getSource().getServer().getPlayerList().broadcastSystemMessage(Component.literal(
                         "Chat has been cleared by a moderator.")

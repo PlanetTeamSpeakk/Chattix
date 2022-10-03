@@ -46,6 +46,12 @@
   vicinity_chat: {
     enabled: false
     radius: 100 // If set to 0 or less while vicinity chat is enabled, messages will be sent to everyone in the same world.
+
+    local_chat: {
+      enabled: true // Whether to make a distinction between local and global chat, if disabled while vicinity chat is enabled, all chat will be local.
+      default: true // If enabled and local chat is enabled, messages will by default be sent via local chat instead of global chat.
+      prefix: "<dark_green><b>LOCAL</b></dark_green> " // The prefix to put before messages sent via local chat
+    }
   },
 
   // When enabled, players will hear the given sound whenever their name is mentioned in chat.

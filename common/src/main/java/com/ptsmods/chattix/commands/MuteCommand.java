@@ -21,14 +21,14 @@ public class MuteCommand {
         ChattixArch.registerPermission("chattix.mute", false);
 
         dispatcher.register(literal("mute")
-                .requires(stack -> ChattixArch.hasPermission(stack, "chattix.mute"))
+                .requires(stack -> ChattixArch.hasPermission(stack, "chattix.mute", false))
                 .then(argument("player", EntityArgument.player())
                         .executes(ctx -> executeMute(ctx, Component.literal("No reason specified")))
                         .then(argument("reason", MessageArgument.message())
                                 .executes(ctx -> executeMute(ctx, MessageArgument.getMessage(ctx, "reason"))))));
 
         dispatcher.register(literal("unmute")
-                .requires(stack -> ChattixArch.hasPermission(stack, "chattix.mute"))
+                .requires(stack -> ChattixArch.hasPermission(stack, "chattix.mute", false))
                 .then(argument("player", EntityArgument.player())
                         .executes(ctx -> {
                             ServerPlayer player = EntityArgument.getPlayer(ctx, "player");

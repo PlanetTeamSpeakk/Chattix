@@ -7,11 +7,11 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.server.permission.PermissionAPI;
 
 public class ChattixArchImpl {
-    public static boolean hasPermission(CommandSourceStack stack, String permission) throws CommandSyntaxException {
+    public static boolean hasPermission(CommandSourceStack stack, String permission, boolean defaultValue) throws CommandSyntaxException {
         return PermissionAPI.getPermission(stack.getPlayerOrException(), ChattixForge.getPermission(permission));
     }
 
-    public static boolean hasPermission(ServerPlayer player, String permission) {
+    public static boolean hasPermission(ServerPlayer player, String permission, boolean defaultValue) {
         return PermissionAPI.getPermission(player, ChattixForge.getPermission(permission));
     }
 
