@@ -10,6 +10,13 @@ public class UpgradeV1 implements ConfigUpgrade {
 
     @Override
     public JsonObject upgrade(JsonObject config) {
+        JsonObject moderationConfig = new JsonObject();
+        JsonObject slowModeConfig = new JsonObject();
+        slowModeConfig.set("enabled", false);
+        slowModeConfig.set("cooldown", 3);
+        moderationConfig.set("slow_mode", slowModeConfig);
+        config.set("moderation", moderationConfig);
+
         JsonObject joinLeaveMessagesConfig = new JsonObject();
         joinLeaveMessagesConfig.set("enabled", true);
         joinLeaveMessagesConfig.set("join_format", "<yellow>%name% has joined the game</yellow>");

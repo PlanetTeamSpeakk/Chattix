@@ -19,8 +19,8 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public class MixinServerGamePacketListenerImpl {
-    @Shadow public ServerPlayer player;
     private static final @Unique ResourceKey<ChatType> formattedChatType = ResourceKey.create(Registry.CHAT_TYPE_REGISTRY, new ResourceLocation("chattix:formatted"));
+    @Shadow public ServerPlayer player;
 
     @Redirect(at = @At(value = "FIELD", opcode = Opcodes.GETSTATIC, target = "Lnet/minecraft/network/chat/ChatType;CHAT:Lnet/minecraft/resources/ResourceKey;"), method = "broadcastChatMessage")
     private ResourceKey<ChatType> broadcastChatMessage_chat() {

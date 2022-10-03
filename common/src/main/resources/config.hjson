@@ -3,6 +3,14 @@
 
   config_version: 2 // This is the version of this config format, please do not change this.
 
+  // Settings related to moderating chat
+  moderation: {
+    slow_mode: {
+      enabled: false // Whether slow mode should be enabled
+      cooldown: 3 // The amount of seconds a player without the chattix.bypass permission must wait between sending messages.
+    }
+  }
+
   // All formats allow for use of the minimessage format, for more information on its syntax, have a look here:
   // https://docs.adventure.kyori.net/minimessage/format.html
   formatting: {

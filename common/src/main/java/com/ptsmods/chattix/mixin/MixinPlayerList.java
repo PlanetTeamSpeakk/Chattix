@@ -1,60 +1,91 @@
 package com.ptsmods.chattix.mixin;
 
+import com.google.common.collect.ImmutableList;
 import com.ptsmods.chattix.Chattix;
 import com.ptsmods.chattix.config.Config;
+import com.ptsmods.chattix.config.ModerationConfig;
 import com.ptsmods.chattix.util.ChattixArch;
 import it.unimi.dsi.fastutil.booleans.BooleanObjectPair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.*;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.players.PlayerList;
 import net.minecraft.sounds.SoundSource;
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 @Mixin(PlayerList.class)
 public class MixinPlayerList {
-
-    // Handle mutes
+    @Shadow @Final private MinecraftServer server;
     @SuppressWarnings("ConstantConditions")
+    private static final @Unique List<BiFunction<ServerPlayer, PlayerChatMessage, MutableComponent>> predicates = ImmutableList.of(
+            (player, msg) -> Chattix.isChatDisabled() && !ChattixArch.hasPermission(player, "chattix.bypass", false) ?
+                    Component.literal("Chat is currently disabled!") : null,
+            (player, msg) -> {
+                BooleanObjectPair<Component> filter;
+                if (ChattixArch.hasPermission(player, "chattix.bypass", false) ||
+                        (filter = Chattix.filter(msg.signedContent().plain())).leftBoolean()) return null;
+
+                return Component.literal("That message contains illegal characters! Problematic characters: ").append(filter.right());
+            },
+            (player, msg) -> {
+                if (!Config.getInstance().isMuted(player)) return null;
+
+                Objects.requireNonNull(player.getServer()).sendSystemMessage(Component.literal("Player " + player.getGameProfile().getName() +
+                        " tried to speak but is muted!").withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+
+                return Component.literal("You cannot speak as you are muted! Reason: ")
+                        .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))
+                        .append(Config.getInstance().getMuteReason(player));
+            },
+            (player, msg) -> {
+                ModerationConfig.SlowModeConfig slowModeConfig = Config.getInstance().getModerationConfig().getSlowModeConfig();
+                if (!slowModeConfig.isOnCooldown(player)) return null;
+
+                int remaining = (int) (slowModeConfig.getCooldown() - (System.currentTimeMillis() - slowModeConfig.getLastSent(player)) / 1000);
+                return Component.literal("Too fast! Slow mode is enabled and you need to wait " +
+                        remaining + " more second" + (remaining == 1 ? "" : "s") + ".");
+            }
+    );
+
     @Inject(at = @At("HEAD"), method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;" +
             "Lnet/minecraft/network/chat/ChatSender;Lnet/minecraft/network/chat/ChatType$Bound;)V", cancellable = true)
-    private void broadcastChatMessage(PlayerChatMessage playerChatMessage, Predicate<ServerPlayer> predicate, ServerPlayer player, ChatSender chatSender, ChatType.Bound bound, CallbackInfo cbi) {
-        if (Chattix.isChatDisabled() && !ChattixArch.hasPermission(player, "chattix.bypass", false)) {
-            player.sendSystemMessage(Component.literal("Chat is currently disabled!")
-                    .withStyle(ChatFormatting.RED));
-            cbi.cancel();
-        }
+    private void broadcastChatMessage(PlayerChatMessage msg, Predicate<ServerPlayer> predicate, ServerPlayer player, ChatSender chatSender, ChatType.Bound bound, CallbackInfo cbi) {
+        predicates.stream()
+                .map(p -> p.apply(player, msg))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .ifPresentOrElse(errorMsg -> {
+                    // The Minecraft chat signing system is one complicated thing to work with.
+                    // Every player has to know about every message sent or consecutive messages will fail to be verified,
+                    // causing everyone to get disconnected.
+                    // There are two ways to inform clients about a message, however, one is by sending the actual whole message,
+                    // the other is by sending just the header. In the latter case, we don't actually send the message,
+                    // but do inform the client a message was sent, so they can properly verify consecutive messages.
+                    // That's why we have to broadcast the message header to everyone, otherwise shit will hit the fan.
+                    server.getPlayerList().broadcastMessageHeader(msg, Collections.emptySet());
 
-        BooleanObjectPair<Component> filter;
-        if (player != null && !ChattixArch.hasPermission(player, "chattix.bypass", false) && !(filter = Chattix.filter(playerChatMessage.signedContent().plain())).leftBoolean()) {
-            player.sendSystemMessage(Component.literal("That message contains illegal characters! Problematic characters: ")
-                    .withStyle(ChatFormatting.RED)
-                    .append(filter.right()));
-            cbi.cancel();
-        }
-
-        if (player != null && Config.getInstance().isMuted(player)) {
-            player.sendSystemMessage(Component.literal("You cannot speak as you are muted! Reason: ")
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))
-                    .append(Config.getInstance().getMuteReason(player)));
-
-            Objects.requireNonNull(player.getServer()).sendSystemMessage(Component.literal("Player " + player.getGameProfile().getName() +
-                    " tried to speak but is muted!").withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
-            cbi.cancel();
-        }
+                    player.sendSystemMessage(errorMsg.withStyle(ChatFormatting.RED));
+                    cbi.cancel();
+                }, () -> Config.getInstance().getModerationConfig().getSlowModeConfig().setLastSent(player));
     }
 
     // Filter recipients to send the chat message to and handle chat mentions

@@ -35,8 +35,8 @@ import static com.ptsmods.chattix.Chattix.LOG;
 public class Config {
     @Getter
     private static final Path configFile = Platform.getConfigFolder().resolve("chattix/config.hjson");
-    public static final Config DEFAULT = new Config(2, FormattingConfig.DEFAULT, VicinityChatConfig.DEFAULT, MentionsConfig.DEFAULT,
-            JoinLeaveConfig.DEFAULT, FilteringConfig.DEFAULT);
+    public static final Config DEFAULT = new Config(2, ModerationConfig.DEFAULT, FormattingConfig.DEFAULT, VicinityChatConfig.DEFAULT,
+            MentionsConfig.DEFAULT, JoinLeaveConfig.DEFAULT, FilteringConfig.DEFAULT);
     private static final Path ignoredPath = getConfigFile().resolveSibling("ignored/");
     private static final Path mutedPath = getConfigFile().resolveSibling("muted.json");
     private static final Int2ObjectMap<ConfigUpgrade> upgrades = new Int2ObjectLinkedOpenHashMap<>();
@@ -49,6 +49,7 @@ public class Config {
     @Getter
     private static Config instance = DEFAULT;
     private final int version;
+    private final ModerationConfig moderationConfig;
     private final FormattingConfig formattingConfig;
     private final VicinityChatConfig vicinityChatConfig;
     private final MentionsConfig mentionsConfig;
@@ -105,13 +106,14 @@ public class Config {
             Chattix.LOG.error("Could not save upgraded config.", e);
         }
 
+        ModerationConfig moderationConfig = config.get("moderation") == null ? ModerationConfig.DEFAULT : ModerationConfig.fromJson(config.get("moderation").asObject());
         FormattingConfig formattingConfig = config.get("formatting") == null ? FormattingConfig.DEFAULT : FormattingConfig.fromJson(config.get("formatting").asObject());
         VicinityChatConfig vicinityChatConfig = config.get("vicinity_chat") == null ? VicinityChatConfig.DEFAULT : VicinityChatConfig.fromJson(config.get("vicinity_chat").asObject());
         MentionsConfig mentionsConfig = config.get("mentions") == null ? MentionsConfig.DEFAULT : MentionsConfig.fromJson(config.get("mentions").asObject());
         JoinLeaveConfig joinLeaveConfig = config.get("join_leave_messages") == null ? JoinLeaveConfig.DEFAULT : JoinLeaveConfig.fromJson(config.get("join_leave_messages").asObject());
         FilteringConfig filteringConfig = config.get("filtering") == null ? FilteringConfig.DEFAULT : FilteringConfig.fromJson(config.get("filtering").asObject());
 
-        instance = new Config(version, formattingConfig, vicinityChatConfig, mentionsConfig, joinLeaveConfig, filteringConfig);
+        instance = new Config(version, moderationConfig, formattingConfig, vicinityChatConfig, mentionsConfig, joinLeaveConfig, filteringConfig);
 
         if (Files.exists(mutedPath)) try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(mutedPath)))) {
             //noinspection UnstableApiUsage

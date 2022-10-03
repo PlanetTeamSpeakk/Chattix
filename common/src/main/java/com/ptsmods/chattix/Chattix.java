@@ -3,6 +3,7 @@ package com.ptsmods.chattix;
 import com.ptsmods.chattix.commands.*;
 import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.config.FilteringConfig;
+import com.ptsmods.chattix.config.ModerationConfig;
 import com.ptsmods.chattix.config.VicinityChatConfig;
 import com.ptsmods.chattix.placeholder.Placeholders;
 import com.ptsmods.chattix.util.ChattixArch;
@@ -22,18 +23,24 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Function;
 
 public class Chattix {
     public static final String MOD_ID = "chattix";
     public static final Logger LOG = LogManager.getLogger();
     private static final Path chatDisabledFile = Config.getConfigFile().resolveSibling("chat_disabled");
+    private static final List<Function<ServerPlayer, MutableComponent>> predicates = new ArrayList<>();
     private static boolean formattingMessageArgument = false;
     @Getter
     private static boolean chatDisabled = Files.exists(chatDisabledFile);
@@ -51,18 +58,29 @@ public class Chattix {
 
         ChattixArch.registerPermission("chattix.bypass", false);
 
+        //noinspection ConstantConditions
+        predicates.add(player -> chatDisabled && !ChattixArch.hasPermission(player, "chattix.bypass", false) ?
+                Component.literal("Chat is currently disabled!") : null);
+        predicates.add(player -> Config.getInstance().isMuted(player) ? Component.literal("You cannot speak as you are muted! Reason: ")
+                .append(Config.getInstance().getMuteReason(player)) : null);
+        predicates.add(player -> {
+            ModerationConfig.SlowModeConfig slowModeConfig = Config.getInstance().getModerationConfig().getSlowModeConfig();
+            int remaining = (int) (slowModeConfig.getCooldown() - (System.currentTimeMillis() - slowModeConfig.getLastSent(player)) / 1000);
+            return slowModeConfig.isOnCooldown(player) ?
+                    Component.literal("Too fast! Slow mode is enabled and you need to wait " +
+                            remaining + " more second" + (remaining == 1 ? "" : "s") + ".") : null;
+        });
+
         ChatEvent.DECORATE.register((player, component) -> {
             if (player == null) return;
 
-            //noinspection ConstantConditions // IntelliJ does not seem to recognise chatDisabled changes
-            if (chatDisabled && !ChattixArch.hasPermission(player, "chattix.bypass", false))
-                component.set(Component.literal("Chat is currently disabled!")
-                    .withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
-            else if (Config.getInstance().isMuted(player))
-                component.set(Component.literal("You cannot speak as you are muted! Reason: ")
-                        .withStyle(Style.EMPTY.withColor(ChatFormatting.RED))
-                        .append(Config.getInstance().getMuteReason(player)));
-            else if (!formattingMessageArgument && Config.getInstance().getFormattingConfig().isEnabled())
+            MutableComponent errorMsg = getErrorMsg(player);
+            if (errorMsg != null) {
+                component.set(errorMsg);
+                return;
+            }
+
+            if (!formattingMessageArgument && Config.getInstance().getFormattingConfig().isEnabled())
                 component.set(format(player, VanillaComponentSerializer.vanilla().deserialize(component.get())));
         });
 
@@ -151,5 +169,13 @@ public class Chattix {
         else if (!chatDisabled) Files.deleteIfExists(chatDisabledFile);
     }
 
-
+    @Nullable
+    public static MutableComponent getErrorMsg(ServerPlayer player) {
+        return predicates.stream()
+                .map(predicate -> predicate.apply(player))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .map(msg -> msg.withStyle(ChatFormatting.RED))
+                .orElse(null);
+    }
 }
