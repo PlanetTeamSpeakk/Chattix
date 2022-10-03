@@ -12,6 +12,7 @@
     "MixinMinecraftServer",
     "MixinPlayerList",
     "MixinServerGamePacketListenerImpl",
+    "MixinServerPlayer",
     "MixinStyleAccessor"
   ],
   "server": [

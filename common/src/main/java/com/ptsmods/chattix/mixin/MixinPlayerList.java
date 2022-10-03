@@ -5,6 +5,7 @@ import com.ptsmods.chattix.Chattix;
 import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.config.ModerationConfig;
 import com.ptsmods.chattix.util.ChattixArch;
+import com.ptsmods.chattix.util.ServerPlayerAddon;
 import it.unimi.dsi.fastutil.booleans.BooleanObjectPair;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Registry;
@@ -124,5 +125,11 @@ public class MixinPlayerList {
     private void placeNewPlayer_broadcastSystemMessage(PlayerList instance, Component message, boolean bl) {
         if (Config.getInstance().getJoinLeaveConfig().isEnabled())
             instance.broadcastSystemMessage(message, bl);
+    }
+
+    @Inject(at = @At("HEAD"), method = "placeNewPlayer")
+    private void placeNewPlayer(Connection connection, ServerPlayer player, CallbackInfo ci) {
+        if (server.getProfileCache().get(player.getGameProfile().getId()).isEmpty())
+            ((ServerPlayerAddon) player).setFirstTimePlaying(true);
     }
 }

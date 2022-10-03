@@ -10,6 +10,13 @@
       cooldown: 3 // The amount of seconds a player without the chattix.bypass permission must wait between sending messages.
     }
 
+    // Welcome players to the server with a custom message.
+    welcoming: {
+      enabled: true
+      format: "<light_purple>Welcome to the server, %name%!</light_purple>" // The format to use for the message
+      broadcast: true // Whether the message should be sent to everyone or just the new player
+    }
+
     // Threshold of how similar messages may be to still be allowed. Must be between 0.0 and 1.0.
     // E.g. at 1.0 only identical messages won't be allowed, but at 0.8, something like 'Hello, world!'
     // won't be allowed either if the previous message was 'Hello world' as they are too similar.

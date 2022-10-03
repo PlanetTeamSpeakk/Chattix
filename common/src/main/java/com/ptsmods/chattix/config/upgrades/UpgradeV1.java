@@ -16,6 +16,12 @@ public class UpgradeV1 implements ConfigUpgrade {
         slowModeConfig.set("cooldown", 3);
         moderationConfig.set("slow_mode", slowModeConfig);
 
+        JsonObject welcomingConfig = new JsonObject();
+        welcomingConfig.set("enabled", true);
+        welcomingConfig.set("format", "<light_purple>Welcome to the server, %name%!</light_purple>");
+        welcomingConfig.set("broadcast", true);
+        moderationConfig.set("welcoming", welcomingConfig);
+
         moderationConfig.set("similarity", 1.0);
         config.set("moderation", moderationConfig);
 

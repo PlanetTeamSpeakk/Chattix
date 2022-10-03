@@ -7,6 +7,7 @@ import com.ptsmods.chattix.config.ModerationConfig;
 import com.ptsmods.chattix.config.VicinityChatConfig;
 import com.ptsmods.chattix.placeholder.Placeholders;
 import com.ptsmods.chattix.util.ChattixArch;
+import com.ptsmods.chattix.util.ServerPlayerAddon;
 import com.ptsmods.chattix.util.VanillaComponentSerializer;
 import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
@@ -99,6 +100,15 @@ public class Chattix {
             MuteCommand.register(dispatcher);
             BroadcastCommand.register(dispatcher);
             LocalCommand.register(dispatcher);
+        });
+
+        PlayerEvent.PLAYER_JOIN.register(player -> {
+            ModerationConfig.WelcomingConfig welcomingConfig = Config.getInstance().getModerationConfig().getWelcomingConfig();
+            if (!welcomingConfig.isEnabled() || welcomingConfig.getFormat().isEmpty() || !((ServerPlayerAddon) player).isFirstTimePlaying()) return;
+
+            Component message = format(player, net.kyori.adventure.text.Component.empty(), welcomingConfig.getFormat(), false, true);
+            if (welcomingConfig.isBroadcast()) Objects.requireNonNull(player.getServer()).getPlayerList().broadcastSystemMessage(message, false);
+            else player.sendSystemMessage(message);
         });
 
         PlayerEvent.PLAYER_JOIN.register(player -> Config.getInstance().getIgnored().refresh(player.getUUID()));
