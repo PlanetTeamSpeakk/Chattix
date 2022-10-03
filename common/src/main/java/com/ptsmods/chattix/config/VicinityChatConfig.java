@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import org.hjson.JsonObject;
@@ -28,9 +30,15 @@ public class VicinityChatConfig {
         int max = radius * radius;
         boolean global = localChatConfig.isEnabled() && !localChatConfig.isEnabledFor(player);
 
-        return !enabled ? ImmutableList.copyOf(players) : players.stream()
+        List<ServerPlayer> recipients = !enabled ? ImmutableList.copyOf(players) : players.stream()
                 .filter(recipient -> global || recipient.getLevel() == player.getLevel() && (radius <= 0 || recipient.distanceToSqr(player) < max))
                 .toList();
+
+        if (recipients.isEmpty() || recipients.stream().allMatch(recipient -> recipient == player))
+            player.sendSystemMessage(Component.literal("No one seems to have heard you as no one was nearby.")
+                    .withStyle(ChatFormatting.RED));
+
+        return recipients;
     }
 
     @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
