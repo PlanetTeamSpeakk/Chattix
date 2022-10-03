@@ -64,6 +64,8 @@ public class Chattix {
         predicates.add(player -> Config.getInstance().isMuted(player) ? Component.literal("You cannot speak as you are muted! Reason: ")
                 .append(Config.getInstance().getMuteReason(player)) : null);
         predicates.add(player -> {
+            if (ChattixArch.hasPermission(player, "chattix.bypass", false)) return null;
+
             ModerationConfig.SlowModeConfig slowModeConfig = Config.getInstance().getModerationConfig().getSlowModeConfig();
             int remaining = (int) (slowModeConfig.getCooldown() - (System.currentTimeMillis() - slowModeConfig.getLastSent(player)) / 1000);
             return slowModeConfig.isOnCooldown(player) ?

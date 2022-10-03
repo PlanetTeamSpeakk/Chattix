@@ -58,7 +58,7 @@ public class MixinPlayerList {
             },
             (player, msg) -> {
                 ModerationConfig.SlowModeConfig slowModeConfig = Config.getInstance().getModerationConfig().getSlowModeConfig();
-                if (!slowModeConfig.isOnCooldown(player)) return null;
+                if (!slowModeConfig.isOnCooldown(player) && !ChattixArch.hasPermission(player, "chattix.bypass", false)) return null;
 
                 int remaining = (int) (slowModeConfig.getCooldown() - (System.currentTimeMillis() - slowModeConfig.getLastSent(player)) / 1000);
                 return Component.literal("Too fast! Slow mode is enabled and you need to wait " +
