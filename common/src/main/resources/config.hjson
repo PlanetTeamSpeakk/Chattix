@@ -9,6 +9,13 @@
       enabled: false // Whether slow mode should be enabled
       cooldown: 3 // The amount of seconds a player without the chattix.bypass permission must wait between sending messages.
     }
+
+    // Threshold of how similar messages may be to still be allowed. Must be between 0.0 and 1.0.
+    // E.g. at 1.0 only identical messages won't be allowed, but at 0.8, something like 'Hello, world!'
+    // won't be allowed either if the previous message was 'Hello world' as they are too similar.
+    // If you want to enforce this, a value of 0.7 is recommended.
+    // To allow identical messages too, set to anything greater than 1.0
+    similarity: 1.0
   }
 
   // All formats allow for use of the minimessage format, for more information on its syntax, have a look here:

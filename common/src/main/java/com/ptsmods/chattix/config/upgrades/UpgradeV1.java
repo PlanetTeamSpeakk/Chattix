@@ -15,6 +15,8 @@ public class UpgradeV1 implements ConfigUpgrade {
         slowModeConfig.set("enabled", false);
         slowModeConfig.set("cooldown", 3);
         moderationConfig.set("slow_mode", slowModeConfig);
+
+        moderationConfig.set("similarity", 1.0);
         config.set("moderation", moderationConfig);
 
         JsonObject joinLeaveMessagesConfig = new JsonObject();

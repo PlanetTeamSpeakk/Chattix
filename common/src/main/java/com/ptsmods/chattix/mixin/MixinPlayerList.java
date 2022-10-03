@@ -57,13 +57,17 @@ public class MixinPlayerList {
                         .append(Config.getInstance().getMuteReason(player));
             },
             (player, msg) -> {
-                ModerationConfig.SlowModeConfig slowModeConfig = Config.getInstance().getModerationConfig().getSlowModeConfig();
-                if (!slowModeConfig.isOnCooldown(player) && !ChattixArch.hasPermission(player, "chattix.bypass", false)) return null;
+                if (ChattixArch.hasPermission(player, "chattix.bypass", false)) return null;
 
+                ModerationConfig.SlowModeConfig slowModeConfig = Config.getInstance().getModerationConfig().getSlowModeConfig();
                 int remaining = (int) (slowModeConfig.getCooldown() - (System.currentTimeMillis() - slowModeConfig.getLastSent(player)) / 1000);
-                return Component.literal("Too fast! Slow mode is enabled and you need to wait " +
-                        remaining + " more second" + (remaining == 1 ? "" : "s") + ".");
-            }
+                return slowModeConfig.isOnCooldown(player) ?
+                        Component.literal("Too fast! Slow mode is enabled and you need to wait " +
+                                remaining + " more second" + (remaining == 1 ? "" : "s") + ".") : null;
+            },
+            (player, msg) -> !ChattixArch.hasPermission(player, "chattix.bypass", false) &&
+                    Config.getInstance().getModerationConfig().isTooSimilar(msg.signedContent().plain(), Chattix.getLastMessage(player)) ?
+                    Component.literal("That message is too similar to your last message!") : null
     );
 
     @Inject(at = @At("HEAD"), method = "broadcastChatMessage(Lnet/minecraft/network/chat/PlayerChatMessage;Ljava/util/function/Predicate;Lnet/minecraft/server/level/ServerPlayer;" +
@@ -85,7 +89,10 @@ public class MixinPlayerList {
 
                     player.sendSystemMessage(errorMsg.withStyle(ChatFormatting.RED));
                     cbi.cancel();
-                }, () -> Config.getInstance().getModerationConfig().getSlowModeConfig().setLastSent(player));
+                }, () -> {
+                    Config.getInstance().getModerationConfig().getSlowModeConfig().setLastSent(player);
+                    Chattix.setLastMessages(player, msg.signedContent().plain());
+                });
     }
 
     // Filter recipients to send the chat message to and handle chat mentions

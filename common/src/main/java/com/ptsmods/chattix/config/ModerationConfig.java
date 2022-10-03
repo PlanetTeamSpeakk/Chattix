@@ -1,9 +1,11 @@
 package com.ptsmods.chattix.config;
 
+import com.ptsmods.chattix.util.Util;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import net.minecraft.world.entity.player.Player;
 import org.hjson.JsonObject;
@@ -13,12 +15,20 @@ import java.util.UUID;
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 @Getter
 public class ModerationConfig {
-    public static ModerationConfig DEFAULT = new ModerationConfig(SlowModeConfig.DEFAULT);
+    public static ModerationConfig DEFAULT = new ModerationConfig(SlowModeConfig.DEFAULT, 1.0);
     private final SlowModeConfig slowModeConfig;
+    private final double similarity;
 
     static ModerationConfig fromJson(JsonObject object) {
         SlowModeConfig slowModeConfig = object.get("slow_mode") == null ? SlowModeConfig.DEFAULT : SlowModeConfig.fromJson(object.get("slow_mode").asObject());
-        return new ModerationConfig(slowModeConfig);
+        return new ModerationConfig(slowModeConfig, object.getDouble("similarity", 1.0));
+    }
+
+    public boolean isTooSimilar(@NonNull String message, @NonNull String lastMessage) {
+        int distance = Util.getLevenshteinDistance(message, lastMessage);
+        double similarity = (message.length() - distance) / (double) message.length();
+
+        return similarity >= this.similarity;
     }
 
     @RequiredArgsConstructor(access = AccessLevel.PACKAGE)

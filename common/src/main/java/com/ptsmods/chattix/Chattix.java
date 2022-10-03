@@ -25,22 +25,22 @@ import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
+import java.util.*;
+import java.util.function.BiFunction;
 
 public class Chattix {
     public static final String MOD_ID = "chattix";
     public static final Logger LOG = LogManager.getLogger();
     private static final Path chatDisabledFile = Config.getConfigFile().resolveSibling("chat_disabled");
-    private static final List<Function<ServerPlayer, MutableComponent>> predicates = new ArrayList<>();
+    private static final List<BiFunction<ServerPlayer, String, MutableComponent>> predicates = new ArrayList<>();
+    private static final Map<UUID, String> lastMessages = new HashMap<>();
     private static boolean formattingMessageArgument = false;
     @Getter
     private static boolean chatDisabled = Files.exists(chatDisabledFile);
@@ -59,11 +59,11 @@ public class Chattix {
         ChattixArch.registerPermission("chattix.bypass", false);
 
         //noinspection ConstantConditions
-        predicates.add(player -> chatDisabled && !ChattixArch.hasPermission(player, "chattix.bypass", false) ?
+        predicates.add((player, msg) -> chatDisabled && !ChattixArch.hasPermission(player, "chattix.bypass", false) ?
                 Component.literal("Chat is currently disabled!") : null);
-        predicates.add(player -> Config.getInstance().isMuted(player) ? Component.literal("You cannot speak as you are muted! Reason: ")
+        predicates.add((player, msg) -> Config.getInstance().isMuted(player) ? Component.literal("You cannot speak as you are muted! Reason: ")
                 .append(Config.getInstance().getMuteReason(player)) : null);
-        predicates.add(player -> {
+        predicates.add((player, msg) -> {
             if (ChattixArch.hasPermission(player, "chattix.bypass", false)) return null;
 
             ModerationConfig.SlowModeConfig slowModeConfig = Config.getInstance().getModerationConfig().getSlowModeConfig();
@@ -72,11 +72,14 @@ public class Chattix {
                     Component.literal("Too fast! Slow mode is enabled and you need to wait " +
                             remaining + " more second" + (remaining == 1 ? "" : "s") + ".") : null;
         });
+        predicates.add((player, msg) -> !ChattixArch.hasPermission(player, "chattix.bypass", false) &&
+                Config.getInstance().getModerationConfig().isTooSimilar(msg, getLastMessage(player)) ?
+                Component.literal("That message is too similar to your last message!") : null);
 
         ChatEvent.DECORATE.register((player, component) -> {
             if (player == null) return;
 
-            MutableComponent errorMsg = getErrorMsg(player);
+            MutableComponent errorMsg = getErrorMsg(player, component.get().getString());
             if (errorMsg != null) {
                 component.set(errorMsg);
                 return;
@@ -172,12 +175,20 @@ public class Chattix {
     }
 
     @Nullable
-    public static MutableComponent getErrorMsg(ServerPlayer player) {
+    public static MutableComponent getErrorMsg(ServerPlayer player, String msg) {
         return predicates.stream()
-                .map(predicate -> predicate.apply(player))
+                .map(predicate -> predicate.apply(player, msg))
                 .filter(Objects::nonNull)
                 .findFirst()
-                .map(msg -> msg.withStyle(ChatFormatting.RED))
+                .map(error -> error.withStyle(ChatFormatting.RED))
                 .orElse(null);
+    }
+
+    public static String getLastMessage(Player player) {
+        return lastMessages.getOrDefault(player.getUUID(), "");
+    }
+
+    public static void setLastMessages(Player player, String message) {
+        lastMessages.put(player.getUUID(), message);
     }
 }
