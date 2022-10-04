@@ -100,6 +100,7 @@ public class Chattix {
             MuteCommand.register(dispatcher);
             BroadcastCommand.register(dispatcher);
             LocalCommand.register(dispatcher);
+            ReplyCommand.register(dispatcher);
         });
 
         PlayerEvent.PLAYER_JOIN.register(player -> {

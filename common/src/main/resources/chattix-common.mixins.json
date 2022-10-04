@@ -10,6 +10,8 @@
     "MixinMessageArgumentChatMessage",
     "MixinMessageArgumentMessage",
     "MixinMinecraftServer",
+    "MixinMsgCommand",
+    "MixinMsgCommandAccessor",
     "MixinPlayerList",
     "MixinServerGamePacketListenerImpl",
     "MixinServerPlayer",
