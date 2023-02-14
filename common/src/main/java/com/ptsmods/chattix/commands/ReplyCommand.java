@@ -2,6 +2,7 @@ package com.ptsmods.chattix.commands;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.ptsmods.chattix.mixin.MixinMsgCommandAccessor;
+import com.ptsmods.chattix.util.MixinHelper;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.MessageArgument;
 import net.minecraft.network.chat.Component;
@@ -25,6 +26,7 @@ public class ReplyCommand {
                             }
 
                             Collection<ServerPlayer> recipients = lastRecipients.get(ctx.getSource().getPlayerOrException().getUUID());
+                            MixinHelper.setDecoratorOverride(recipients.isEmpty() ? null : recipients.iterator().next());
                             MessageArgument.resolveChatMessage(ctx, "message", msg ->
                                     MixinMsgCommandAccessor.callSendMessage(ctx.getSource(), recipients, msg));
 

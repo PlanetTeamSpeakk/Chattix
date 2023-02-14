@@ -2,16 +2,14 @@ package com.ptsmods.chattix.mixin;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.ptsmods.chattix.Chattix;
 import com.ptsmods.chattix.commands.ReplyCommand;
 import com.ptsmods.chattix.config.Config;
-import com.ptsmods.chattix.placeholder.PlaceholderContext;
 import com.ptsmods.chattix.util.MixinHelper;
-import com.ptsmods.chattix.util.VanillaComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.MessageArgument;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.ChatDecorator;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.resources.ResourceKey;
@@ -28,7 +26,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
 @Mixin(MsgCommand.class)
@@ -39,13 +36,10 @@ public class MixinMsgCommand {
     private static void resolveChatMessage(CommandContext<CommandSourceStack> ctx, String arg, Consumer<PlayerChatMessage> consumer) throws CommandSyntaxException {
         List<ServerPlayer> targets = new ArrayList<>(EntityArgument.getPlayers(ctx, "targets"));
 
-        MixinHelper.setDecoratorOverride(Config.getInstance().getFormattingConfig().isEnabled() ? (player, message) ->
-                CompletableFuture.supplyAsync(() -> Chattix.format(player, VanillaComponentSerializer.vanilla().deserialize(message),
-                        Config.getInstance().getFormattingConfig().getMsgFormat(), new PlaceholderContext(PlaceholderContext.ContextType.MSG,
-                                player, targets.isEmpty() ? null : targets.get(0)), true, true)) : null);
+        MixinHelper.setDecoratorOverride(targets.isEmpty() ? null : targets.get(0));
 
         MessageArgument.resolveChatMessage(ctx, arg, consumer);
-        MixinHelper.setDecoratorOverride(null);
+        MixinHelper.setDecoratorOverride((ChatDecorator) null);
     }
 
     @Inject(at = @At("HEAD"), method = "sendMessage")
