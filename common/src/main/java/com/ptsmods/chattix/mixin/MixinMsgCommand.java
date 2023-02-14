@@ -22,7 +22,8 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,7 +34,8 @@ import java.util.function.Consumer;
 public class MixinMsgCommand {
     private static final @Unique ResourceKey<ChatType> formattedChatType = ResourceKey.create(Registries.CHAT_TYPE, new ResourceLocation("chattix:formatted"));
 
-    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/commands/arguments/MessageArgument;resolveChatMessage(Lcom/mojang/brigadier/context/CommandContext;Ljava/lang/String;Ljava/util/function/Consumer;)V"), method = "*")
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/commands/arguments/MessageArgument;resolveChatMessage" +
+            "(Lcom/mojang/brigadier/context/CommandContext;Ljava/lang/String;Ljava/util/function/Consumer;)V"), method = "*")
     private static void resolveChatMessage(CommandContext<CommandSourceStack> ctx, String arg, Consumer<PlayerChatMessage> consumer) throws CommandSyntaxException {
         List<ServerPlayer> targets = new ArrayList<>(EntityArgument.getPlayers(ctx, "targets"));
 
@@ -43,9 +45,11 @@ public class MixinMsgCommand {
         MixinHelper.setDecoratorOverride((ChatDecorator) null);
     }
 
-    @Inject(at = @At("HEAD"), method = "sendMessage")
-    private static void sendMessage(CommandSourceStack source, Collection<ServerPlayer> recipients, PlayerChatMessage playerChatMessage, CallbackInfo ci) {
-        ReplyCommand.setLastRecipients(source, recipients);
+    @Inject(at = @At(value = "INVOKE", target = "Ljava/util/Collection;isEmpty()Z"), method = {"method_13463", "m_244848_"},
+            locals = LocalCapture.CAPTURE_FAILSOFT)
+    private static void sendMessage(CommandContext<CommandSourceStack> ctx, CallbackInfoReturnable<Integer> cbi,
+                                    Collection<ServerPlayer> recipients) {
+        ReplyCommand.setLastRecipients(ctx.getSource(), recipients);
     }
 
     @Redirect(at = @At(value = "FIELD", target = "Lnet/minecraft/network/chat/ChatType;MSG_COMMAND_INCOMING:Lnet/minecraft/resources/ResourceKey;"), method = "sendMessage")
