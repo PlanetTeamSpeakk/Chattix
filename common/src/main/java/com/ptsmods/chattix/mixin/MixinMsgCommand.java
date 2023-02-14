@@ -11,6 +11,7 @@ import net.minecraft.commands.arguments.MessageArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.ChatDecorator;
 import net.minecraft.network.chat.ChatType;
+import net.minecraft.network.chat.OutgoingChatMessage;
 import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -55,5 +56,13 @@ public class MixinMsgCommand {
     @Redirect(at = @At(value = "FIELD", target = "Lnet/minecraft/network/chat/ChatType;MSG_COMMAND_OUTGOING:Lnet/minecraft/resources/ResourceKey;"), method = "sendMessage")
     private static ResourceKey<ChatType> sendMessage_outgoing() {
         return Config.getInstance().getFormattingConfig().isEnabled() ? formattedChatType : ChatType.MSG_COMMAND_OUTGOING;
+    }
+
+    @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;sendChatMessage(Lnet/minecraft/network/chat/OutgoingChatMessage;ZLnet/minecraft/network/chat/ChatType$Bound;)V"),
+            method = "sendMessage")
+    private static void sendMessage_sendChatMessage(ServerPlayer player, OutgoingChatMessage msg, boolean bl, ChatType.Bound bound,
+                                                    CommandSourceStack source, Collection<ServerPlayer> players, PlayerChatMessage msg1) throws CommandSyntaxException {
+        if (!source.isPlayer() || Config.getInstance().hasNotIgnored(source.getPlayerOrException(), player))
+            player.sendChatMessage(msg, bl, bound);
     }
 }

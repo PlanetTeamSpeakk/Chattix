@@ -116,7 +116,6 @@ public class Config {
         instance = new Config(version, moderationConfig, formattingConfig, vicinityChatConfig, mentionsConfig, joinLeaveConfig, filteringConfig);
 
         if (Files.exists(mutedPath)) try (BufferedReader reader = new BufferedReader(new InputStreamReader(Files.newInputStream(mutedPath)))) {
-            //noinspection UnstableApiUsage
             instance.muted.putAll(gson.fromJson(reader, new TypeToken<Map<UUID, Component>>() {}.getType()));
         } catch (IOException e) {
             Chattix.LOG.error("Could not read muted players file.", e);
