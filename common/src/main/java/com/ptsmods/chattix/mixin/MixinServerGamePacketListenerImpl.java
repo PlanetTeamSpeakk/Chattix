@@ -2,7 +2,7 @@ package com.ptsmods.chattix.mixin;
 
 import com.ptsmods.chattix.Chattix;
 import com.ptsmods.chattix.config.Config;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.Redirect;
 
 @Mixin(ServerGamePacketListenerImpl.class)
 public class MixinServerGamePacketListenerImpl {
-    private static final @Unique ResourceKey<ChatType> formattedChatType = ResourceKey.create(Registry.CHAT_TYPE_REGISTRY, new ResourceLocation("chattix:formatted"));
+    private static final @Unique ResourceKey<ChatType> formattedChatType = ResourceKey.create(Registries.CHAT_TYPE, new ResourceLocation("chattix:formatted"));
     @Shadow public ServerPlayer player;
 
     @Redirect(at = @At(value = "FIELD", opcode = Opcodes.GETSTATIC, target = "Lnet/minecraft/network/chat/ChatType;CHAT:Lnet/minecraft/resources/ResourceKey;"), method = "broadcastChatMessage")

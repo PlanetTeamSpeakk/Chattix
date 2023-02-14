@@ -29,13 +29,16 @@ public class ChattixCommand {
                 .then(literal("reload")
                         .executes(ctx -> {
                             long start = System.currentTimeMillis();
-                            boolean wasFormattingEnabled = Config.getInstance().getFormattingConfig().isEnabled();
+                            FormattingConfig formattingConfig = Config.getInstance().getFormattingConfig();
+                            boolean wasFormattingEnabled = formattingConfig.isEnabled();
+
                             Config.load();
+                            formattingConfig = Config.getInstance().getFormattingConfig();
 
                             LoadingCache<UUID, Set<UUID>> ignored = Config.getInstance().getIgnored();
                             ctx.getSource().getServer().getPlayerList().getPlayers().forEach(player -> ignored.refresh(player.getUUID()));
 
-                            if (Config.getInstance().getFormattingConfig().isEnabled() != wasFormattingEnabled)
+                            if (formattingConfig.isEnabled() != wasFormattingEnabled)
                                 ctx.getSource().sendFailure(Component.literal("Chat formatting was toggled. " +
                                         "All players should relog asap."));
 

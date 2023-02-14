@@ -17,16 +17,16 @@ public class ReplyCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(literal("r").redirect(dispatcher.register(literal("reply")
-                .then(argument("msg", MessageArgument.message())
+                .then(argument("message", MessageArgument.message())
                         .executes(ctx -> {
                             if (!lastRecipients.containsKey(ctx.getSource().getPlayerOrException().getUUID())) {
                                 ctx.getSource().sendFailure(Component.literal("You have not received nor sent any direct messages."));
                                 return 0;
                             }
 
-                            MessageArgument.ChatMessage msg = MessageArgument.getChatMessage(ctx, "msg");
                             Collection<ServerPlayer> recipients = lastRecipients.get(ctx.getSource().getPlayerOrException().getUUID());
-                            MixinMsgCommandAccessor.callSendMessage(ctx.getSource(), recipients, msg);
+                            MessageArgument.resolveChatMessage(ctx, "message", msg ->
+                                    MixinMsgCommandAccessor.callSendMessage(ctx.getSource(), recipients, msg));
 
                             return recipients.size();
                         })))));
@@ -35,8 +35,13 @@ public class ReplyCommand {
     public static void setLastRecipients(CommandSourceStack stack, Collection<ServerPlayer> recipients) {
         if (!stack.isPlayer()) return;
 
-        lastRecipients.put(Objects.requireNonNull(stack.getPlayer()).getUUID(), recipients);
-        Set<ServerPlayer> singleton = Collections.singleton(stack.getPlayer());
-        recipients.forEach(recipient -> lastRecipients.put(recipient.getUUID(), singleton));
+        // Ensure we only maintain weak references to players. When players log off, we don't want to keep them here.
+        Set<ServerPlayer> weakRecipients = Collections.newSetFromMap(new WeakHashMap<>());
+        weakRecipients.addAll(recipients);
+        lastRecipients.put(Objects.requireNonNull(stack.getPlayer()).getUUID(), weakRecipients);
+
+        Set<ServerPlayer> weakSender = Collections.newSetFromMap(new WeakHashMap<>());
+        weakSender.add(stack.getPlayer());
+        recipients.forEach(recipient -> lastRecipients.put(recipient.getUUID(), weakSender));
     }
 }

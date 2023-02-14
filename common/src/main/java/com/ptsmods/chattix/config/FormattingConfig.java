@@ -23,22 +23,26 @@ import java.util.stream.StreamSupport;
 @Getter
 public class FormattingConfig {
     public static final FormattingConfig DEFAULT = new FormattingConfig(true, "%luckperms_prefix%%displayname%%luckperms_suffix%: %message%",
+            "<grey>[<white>%sender_displayname%</white> -> <white>%recipient_displayname%</white>]</grey> %message%",
             GroupConfig.DEFAULT, ImmutableMap.of());
     private final boolean enabled;
     @NonNull private final String format;
+    @NonNull private final String msgFormat;
     @NonNull private final GroupConfig groupConfig;
     @NonNull private final Map<ResourceLocation, String> worldConfig;
 
     static FormattingConfig fromJson(JsonObject object) {
         boolean enabled = object.getBoolean("enabled", true);
         String format = object.getString("format", DEFAULT.getFormat());
+        String msgFormat = object.getString("msg_format", DEFAULT.getMsgFormat());
+
         GroupConfig groupConfig = object.get("groups") == null ? GroupConfig.DEFAULT : GroupConfig.fromJson(object.get("groups").asObject());
         Map<ResourceLocation, String> worldConfig = object.get("worlds") == null ? ImmutableMap.of() :
                 StreamSupport.stream(object.get("worlds").asObject().spliterator(), false)
                         .map(member -> Pair.of(new ResourceLocation(member.getName()), member.getValue().asString()))
                         .collect(ImmutableMap.toImmutableMap(Pair::left, Pair::right));
 
-        return new FormattingConfig(enabled, format, groupConfig, worldConfig);
+        return new FormattingConfig(enabled, format, msgFormat, groupConfig, worldConfig);
     }
 
     public String getActiveFormatFor(ServerPlayer player) {
@@ -47,23 +51,23 @@ public class FormattingConfig {
         ResourceLocation dimension = player.getLevel().dimension().location();
         Optional<GroupConfig.Group> group = getGroupsFor(player).stream()
                 .findFirst();
-        if (group.isEmpty()) return worldConfig.getOrDefault(dimension, format);
 
         // Priority:
         // 1. Group-specific and world-specific
         // 2. World-specific
         // 3. Group-specific
         // 4. Global default
-        return group.get().getFormats().stream()
+        return group.map(value -> value.getFormats().stream()
                 .filter(pair -> pair.left() != null && pair.left().equals(dimension))
                 .findFirst()
                 .map(Pair::right)
                 .or(() -> Optional.ofNullable(worldConfig.get(dimension)))
-                .or(() -> group.get().getFormats().stream()
+                .or(() -> value.getFormats().stream()
                         .filter(pair -> pair.left() == null)
                         .findFirst()
                         .map(Pair::right))
-                .orElse(format);
+                .orElse(format))
+                .orElseGet(() -> worldConfig.getOrDefault(dimension, format));
     }
 
     public List<GroupConfig.Group> getGroupsFor(ServerPlayer player) {

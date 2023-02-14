@@ -32,16 +32,22 @@ public class Placeholders {
 
     public static void init() {} // Init fields and load placeholder classes.
 
-    public TextReplacementConfig createReplacementConfig(ServerPlayer player, Component message) {
+    public TextReplacementConfig createReplacementConfig(PlaceholderContext context, ServerPlayer player, Component message) {
         return TextReplacementConfig.builder()
                 .match(PLACEHOLDER_PATTERN)
                 .replacement((res, builder) -> {
-                    if (player == null || res.group(1) != null || !placeholders.containsKey(res.group(3))) return Component.text(res.group(2));
+                    String plName = res.group(3).toLowerCase();
+                    ServerPlayer target = plName.startsWith("sender_") ? context.sender() : plName.startsWith("recipient_") ? context.receiver() : player;
+                    plName = plName.startsWith("sender_") || plName.startsWith("recipient_") ?
+                            plName.substring(plName.indexOf('_') + 1) : plName;
 
-                    Placeholder placeholder = placeholders.get(res.group(3));
+                    if (target == null || res.group(1) != null || !placeholders.containsKey(plName))
+                        return Component.text(res.group(2));
+
+                    Placeholder placeholder = placeholders.get(plName);
                     if (placeholder.requiresArg() && res.group(4) == null) return Component.text(res.group(2));
 
-                    return placeholder.parse(player, message, res.group(4));
+                    return placeholder.parse(context, target, message, res.group(4));
                 })
                 .build();
     }

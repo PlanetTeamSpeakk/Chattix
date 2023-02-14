@@ -6,19 +6,15 @@
   "client": [
   ],
   "mixins": [
+    "MixinChatTypeAccessor",
     "MixinMessageArgument",
-    "MixinMessageArgumentChatMessage",
     "MixinMessageArgumentMessage",
-    "MixinMinecraftServer",
     "MixinMsgCommand",
     "MixinMsgCommandAccessor",
     "MixinPlayerList",
     "MixinServerGamePacketListenerImpl",
     "MixinServerPlayer",
     "MixinStyleAccessor"
-  ],
-  "server": [
-    "MixinDedicatedServer"
   ],
   "injectors": {
     "defaultRequire": 1

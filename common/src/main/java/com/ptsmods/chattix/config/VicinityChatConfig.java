@@ -1,6 +1,5 @@
 package com.ptsmods.chattix.config;
 
-import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +26,13 @@ public class VicinityChatConfig {
 
     public List<ServerPlayer> filterRecipients(ServerPlayer player) {
         List<ServerPlayer> players = Objects.requireNonNull(player.getServer()).getPlayerList().getPlayers();
+        if (!enabled) return players;
+
         int max = radius * radius;
         boolean global = localChatConfig.isEnabled() && !localChatConfig.isEnabledFor(player);
 
-        List<ServerPlayer> recipients = !enabled ? ImmutableList.copyOf(players) : players.stream()
-                .filter(recipient -> global || recipient.getLevel() == player.getLevel() && (radius <= 0 || recipient.distanceToSqr(player) < max))
+        List<ServerPlayer> recipients = global ? players : players.stream()
+                .filter(recipient -> recipient.getLevel() == player.getLevel() && (radius <= 0 || recipient.distanceToSqr(player) < max))
                 .toList();
 
         if (recipients.isEmpty() || recipients.stream().allMatch(recipient -> recipient == player)) {

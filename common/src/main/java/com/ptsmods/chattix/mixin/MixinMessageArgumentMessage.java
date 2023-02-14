@@ -13,14 +13,13 @@ import java.util.concurrent.CompletableFuture;
 
 @Mixin(MessageArgument.Message.class)
 public class MixinMessageArgumentMessage {
-
-    @Inject(at = @At("HEAD"), method = "resolveDecoratedComponent")
-    private void resolveDecoratedComponent_pre(CommandSourceStack stack, CallbackInfoReturnable<CompletableFuture<Component>> cbi) {
+    @Inject(at = @At("HEAD"), method = "resolveComponent")
+    private void resolveComponent_pre(CommandSourceStack stack, CallbackInfoReturnable<CompletableFuture<Component>> cbi) {
         Chattix.setFormattingMessageArgument(true);
     }
 
-    @Inject(at = @At("RETURN"), method = "resolveDecoratedComponent")
-    private void resolveDecoratedComponent_post(CommandSourceStack stack, CallbackInfoReturnable<CompletableFuture<Component>> cbi) {
+    @Inject(at = @At("RETURN"), method = "resolveComponent")
+    private void resolveComponent_post(CommandSourceStack stack, CallbackInfoReturnable<CompletableFuture<Component>> cbi) {
         Chattix.setFormattingMessageArgument(false);
     }
 }

@@ -5,15 +5,17 @@ import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.config.FilteringConfig;
 import com.ptsmods.chattix.config.ModerationConfig;
 import com.ptsmods.chattix.config.VicinityChatConfig;
+import com.ptsmods.chattix.placeholder.PlaceholderContext;
 import com.ptsmods.chattix.placeholder.Placeholders;
 import com.ptsmods.chattix.util.ChattixArch;
-import com.ptsmods.chattix.util.ServerPlayerAddon;
 import com.ptsmods.chattix.util.VanillaComponentSerializer;
+import com.ptsmods.chattix.util.addons.ServerPlayerAddon;
 import dev.architectury.event.events.common.ChatEvent;
 import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import it.unimi.dsi.fastutil.booleans.BooleanObjectPair;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -23,6 +25,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,6 +48,8 @@ public class Chattix {
     private static boolean formattingMessageArgument = false;
     @Getter
     private static boolean chatDisabled = Files.exists(chatDisabledFile);
+    @Getter @Setter
+    private static EntitySelector msgEntitySelector;
 
     public static void init() {
         Config.load();
@@ -125,16 +130,20 @@ public class Chattix {
     }
 
     public static Component format(ServerPlayer player, net.kyori.adventure.text.Component message, String format, boolean filter, boolean ignoreLocal) {
+        return format(player, message, format, new PlaceholderContext(PlaceholderContext.ContextType.CHAT, player, null), filter, ignoreLocal);
+    }
+
+    public static Component format(ServerPlayer player, net.kyori.adventure.text.Component message, String format, PlaceholderContext placeholderContext, boolean filter, boolean ignoreLocal) {
         //noinspection ConstantConditions
         if (filter && (player == null || !ChattixArch.hasPermission(player, "chattix.bypass", false)))
             message = filter(message).right();
 
         VicinityChatConfig vicinityChatConfig = Config.getInstance().getVicinityChatConfig();
-        TextReplacementConfig placeholderReplacement = Placeholders.createReplacementConfig(player, message);
+        TextReplacementConfig placeholderReplacement = Placeholders.createReplacementConfig(placeholderContext, player, message);
         Component output = VanillaComponentSerializer.vanilla().serialize(createMiniMessage(placeholderReplacement).deserialize(format));
 
         return player != null && !ignoreLocal && vicinityChatConfig.isEnabled() && vicinityChatConfig.getLocalChatConfig().isEnabledFor(player) ? Component.empty()
-                .append(format(player, net.kyori.adventure.text.Component.empty(), Config.getInstance().getVicinityChatConfig().getLocalChatConfig().getPrefix(),
+                .append(format(player, net.kyori.adventure.text.Component.empty(), vicinityChatConfig.getLocalChatConfig().getPrefix(),
                         false, true))
                 .append(output) : output;
     }

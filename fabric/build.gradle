@@ -21,7 +21,7 @@ dependencies {
     // Remove the next line if you don't want to depend on the API
     modApi "dev.architectury:architectury-fabric:${rootProject.architectury_version}"
     modImplementation "com.ptsmods:devlogin:3.1"
-    modImplementation "curse.maven:luckperms-431733:3995680"
+    modImplementation "curse.maven:luckperms-431733:4370529"
     modApi "me.lucko:fabric-permissions-api:0.2-SNAPSHOT"
 //    modImplementation "curse.maven:morecommands-250823:4000017"
     include modApi("me.lucko:fabric-permissions-api:0.2-SNAPSHOT")

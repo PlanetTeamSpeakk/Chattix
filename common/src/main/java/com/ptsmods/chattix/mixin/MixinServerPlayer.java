@@ -1,6 +1,6 @@
 package com.ptsmods.chattix.mixin;
 
-import com.ptsmods.chattix.util.ServerPlayerAddon;
+import com.ptsmods.chattix.util.addons.ServerPlayerAddon;
 import lombok.Getter;
 import lombok.Setter;
 import net.minecraft.server.level.ServerPlayer;

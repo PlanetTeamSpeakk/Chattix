@@ -11,7 +11,7 @@ import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.serializer.ComponentSerializer;
 import net.kyori.adventure.util.Codec;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
@@ -150,10 +150,10 @@ public class VanillaComponentSerializer implements ComponentSerializer<Component
         else if (action == net.kyori.adventure.text.event.HoverEvent.Action.SHOW_ENTITY) {
             net.kyori.adventure.text.event.HoverEvent.ShowEntity value = (net.kyori.adventure.text.event.HoverEvent.ShowEntity) hover.value();
             return new HoverEvent(HoverEvent.Action.SHOW_ENTITY, new HoverEvent.EntityTooltipInfo(
-                    Registry.ENTITY_TYPE.get(new ResourceLocation(value.type().asString())), value.id(), value.name() == null ? null : serialize(value.name())));
+                    BuiltInRegistries.ENTITY_TYPE.get(new ResourceLocation(value.type().asString())), value.id(), value.name() == null ? null : serialize(value.name())));
         } else if (action == net.kyori.adventure.text.event.HoverEvent.Action.SHOW_ITEM) {
             net.kyori.adventure.text.event.HoverEvent.ShowItem value = (net.kyori.adventure.text.event.HoverEvent.ShowItem) hover.value();
-            ItemStack stack = new ItemStack(Registry.ITEM.get(new ResourceLocation(value.item().asString())));
+            ItemStack stack = new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(value.item().asString())));
             BinaryTagHolder nbt = value.nbt();
             if (nbt != null) try {
                 stack.setTag(nbt.get(NBT_CODEC));

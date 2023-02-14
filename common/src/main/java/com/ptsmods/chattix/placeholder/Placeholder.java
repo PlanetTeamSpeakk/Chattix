@@ -12,5 +12,5 @@ public interface Placeholder {
         return false;
     }
 
-    Component parse(@NonNull ServerPlayer player, @NonNull Component message, @Nullable String arg);
+    Component parse(@NonNull PlaceholderContext context, @NonNull ServerPlayer player, @NonNull Component message, @Nullable String arg);
 }

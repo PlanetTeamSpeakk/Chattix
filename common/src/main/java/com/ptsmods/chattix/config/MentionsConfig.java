@@ -7,7 +7,7 @@ import com.ptsmods.chattix.Chattix;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import org.hjson.JsonObject;
@@ -41,7 +41,7 @@ public class MentionsConfig {
         } else toggled = new JsonArray();
 
         ResourceLocation sound = new ResourceLocation(object.getString("sound", DEFAULT.getSound().toString()));
-        if (!Registry.SOUND_EVENT.containsKey(sound)) {
+        if (!BuiltInRegistries.SOUND_EVENT.containsKey(sound)) {
             Chattix.LOG.error("No sound with id " + sound + " appears to exist.");
             sound = DEFAULT.getSound();
         }

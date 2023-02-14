@@ -33,6 +33,10 @@
     // Have a look at https://chattix.ptsmods.com to see what placeholders you can use here.
     format: "<%luckperms_prefix%%displayname%%luckperms_suffix%> %message%"
 
+    // The format to use when formatting messages sent via /msg.
+    // Due to a limitation regarding chat signing, it is not possible to use a separate format for the sender and receiver.
+    msg_format: "<grey>[<white>%sender_displayname%</white> -> <white>%recipient_displayname%</white>]</grey> %message%"
+
     // Formats can be ordered by group. A player is considered a member of a group if they have the
     // chattix.group.<group> permission. The first group in this list a player is a member of is the group that will be used.
     // If a player is not a member of any group, the format will default to the one set above.
