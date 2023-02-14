@@ -2,6 +2,7 @@ package com.ptsmods.chattix.mixin;
 
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.ptsmods.chattix.commands.ReplyCommand;
 import com.ptsmods.chattix.config.Config;
 import com.ptsmods.chattix.util.MixinHelper;
@@ -9,10 +10,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.MessageArgument;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.network.chat.ChatDecorator;
-import net.minecraft.network.chat.ChatType;
-import net.minecraft.network.chat.OutgoingChatMessage;
-import net.minecraft.network.chat.PlayerChatMessage;
+import net.minecraft.network.chat.*;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.commands.MsgCommand;
@@ -33,6 +31,8 @@ import java.util.function.Consumer;
 @Mixin(MsgCommand.class)
 public class MixinMsgCommand {
     private static final @Unique ResourceKey<ChatType> formattedChatType = ResourceKey.create(Registries.CHAT_TYPE, new ResourceLocation("chattix:formatted"));
+    private static final @Unique SimpleCommandExceptionType formattedMultiTargets = new SimpleCommandExceptionType(Component.literal("You cannot message multiple" +
+            "targets simultaneously when formatting is enabled due to a signing limitation."));
 
     @Redirect(at = @At(value = "INVOKE", target = "Lnet/minecraft/commands/arguments/MessageArgument;resolveChatMessage" +
             "(Lcom/mojang/brigadier/context/CommandContext;Ljava/lang/String;Ljava/util/function/Consumer;)V"), method = "*")
@@ -48,7 +48,10 @@ public class MixinMsgCommand {
     @Inject(at = @At(value = "INVOKE", target = "Ljava/util/Collection;isEmpty()Z"), method = {"method_13463", "m_244848_"},
             locals = LocalCapture.CAPTURE_FAILSOFT)
     private static void sendMessage(CommandContext<CommandSourceStack> ctx, CallbackInfoReturnable<Integer> cbi,
-                                    Collection<ServerPlayer> recipients) {
+                                    Collection<ServerPlayer> recipients) throws CommandSyntaxException {
+        if (recipients.size() > 1 && Config.getInstance().getFormattingConfig().isEnabled())
+            throw formattedMultiTargets.create();
+
         ReplyCommand.setLastRecipients(ctx.getSource(), recipients);
     }
 
