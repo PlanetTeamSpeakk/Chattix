@@ -18,7 +18,6 @@ import lombok.Getter;
 import lombok.SneakyThrows;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
@@ -134,10 +133,8 @@ public class Chattix {
             message = filter(message).right();
 
         VicinityChatConfig vicinityChatConfig = Config.getInstance().getVicinityChatConfig();
-        TextReplacementConfig placeholderReplacement = Placeholders.createReplacementConfig(placeholderContext, player, message);
 
-        net.kyori.adventure.text.Component adventureOutput = createMiniMessage(placeholderReplacement)
-                .deserialize(format).replaceText(placeholderReplacement);
+        net.kyori.adventure.text.Component adventureOutput = createMiniMessage(placeholderContext, player, message).deserialize(format);
 
         ModerationConfig.LinksConfig linksConfig = Config.getInstance().getModerationConfig().getLinksConfig();
         //noinspection ConstantValue
@@ -173,12 +170,11 @@ public class Chattix {
         return BooleanObjectPair.of(true, component);
     }
 
-    public static MiniMessage createMiniMessage(TextReplacementConfig placeholderReplacement) {
+    public static MiniMessage createMiniMessage(PlaceholderContext context, ServerPlayer player, net.kyori.adventure.text.Component message) {
+        TextReplacementConfig replacementConfig = Placeholders.createReplacementConfig(context, player, message);
         return MiniMessage.builder()
-                .editTags(b -> b.tag("preprocess", (arg, ctx) -> Tag.preProcessParsed(
-                        PlainTextComponentSerializer.plainText().serialize(net.kyori.adventure.text.Component.text(arg.popOr("No arg").value())
-                                .replaceText(placeholderReplacement)))))
-                .postProcessor(post -> post.replaceText(placeholderReplacement))
+                .preProcessor(pre -> Placeholders.parseStringPlaceholders(pre, context, player))
+                .postProcessor(post -> post.replaceText(replacementConfig))
                 .build();
     }
 

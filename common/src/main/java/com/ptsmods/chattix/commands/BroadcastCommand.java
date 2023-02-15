@@ -7,7 +7,6 @@ import com.ptsmods.chattix.placeholder.Placeholders;
 import com.ptsmods.chattix.util.ChattixArch;
 import com.ptsmods.chattix.util.VanillaComponentSerializer;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.arguments.MessageArgument;
@@ -28,11 +27,12 @@ public class BroadcastCommand {
                             ServerPlayer sender = ctx.getSource().isPlayer() ? ctx.getSource().getPlayerOrException() : null;
 
                             ctx.getSource().getServer().getPlayerList().broadcastSystemMessage(message, player -> {
-                                TextReplacementConfig placeholderReplacement = Placeholders.createReplacementConfig(
-                                        new PlaceholderContext(PlaceholderContext.ContextType.BROADCAST, sender, player), player, Component.empty());
+                                PlaceholderContext placeholderContext = new PlaceholderContext(PlaceholderContext.ContextType.BROADCAST, sender, player);
+
                                 // Parse message separately for every player in case of placeholders.
-                                return VanillaComponentSerializer.vanilla().serialize(Chattix.createMiniMessage(placeholderReplacement).deserialize(
-                                        LegacyComponentSerializer.legacySection().serialize(adventureMessage.replaceText(placeholderReplacement))));
+                                return VanillaComponentSerializer.vanilla().serialize(Chattix.createMiniMessage(placeholderContext, player, Component.empty())
+                                        .deserialize(LegacyComponentSerializer.legacySection().serialize(adventureMessage.replaceText(
+                                                Placeholders.createReplacementConfig(placeholderContext, player, Component.empty())))));
                             }, false);
 
                             return 1;

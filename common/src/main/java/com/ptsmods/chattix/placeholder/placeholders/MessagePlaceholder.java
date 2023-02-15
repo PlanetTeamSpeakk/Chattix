@@ -1,6 +1,6 @@
 package com.ptsmods.chattix.placeholder.placeholders;
 
-import com.ptsmods.chattix.placeholder.Placeholder;
+import com.ptsmods.chattix.placeholder.ComponentPlaceholder;
 import com.ptsmods.chattix.placeholder.PlaceholderContext;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
@@ -10,7 +10,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
-public class MessagePlaceholder implements Placeholder {
+public class MessagePlaceholder implements ComponentPlaceholder {
     private static final MiniMessage miniMessage = MiniMessage.builder()
             .editTags(b -> b.tag("preprocess", (arg, ctx) -> Tag.preProcessParsed(arg.popOr("No arg").value())))
             .build();

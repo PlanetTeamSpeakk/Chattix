@@ -5,12 +5,11 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.Nullable;
 
-@FunctionalInterface
-public interface Placeholder {
+public sealed interface Placeholder<R> permits ComponentPlaceholder, StringPlaceholder {
 
     default boolean requiresArg() {
         return false;
     }
 
-    Component parse(@NonNull PlaceholderContext context, @NonNull ServerPlayer player, @NonNull Component message, @Nullable String arg);
+    R parse(@NonNull PlaceholderContext context, @NonNull ServerPlayer player, @NonNull Component message, @Nullable String arg);
 }

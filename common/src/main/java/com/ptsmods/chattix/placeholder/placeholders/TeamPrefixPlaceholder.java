@@ -1,6 +1,6 @@
 package com.ptsmods.chattix.placeholder.placeholders;
 
-import com.ptsmods.chattix.placeholder.Placeholder;
+import com.ptsmods.chattix.placeholder.ComponentPlaceholder;
 import com.ptsmods.chattix.placeholder.PlaceholderContext;
 import com.ptsmods.chattix.util.Util;
 import com.ptsmods.chattix.util.VanillaComponentSerializer;
@@ -10,7 +10,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.scores.PlayerTeam;
 import org.jetbrains.annotations.Nullable;
 
-public class TeamPrefixPlaceholder implements Placeholder {
+public class TeamPrefixPlaceholder implements ComponentPlaceholder {
     @Override
     public Component parse(@NonNull PlaceholderContext context, @NonNull ServerPlayer player, @NonNull Component message, @Nullable String arg) {
         return Util.getTeam(player)
