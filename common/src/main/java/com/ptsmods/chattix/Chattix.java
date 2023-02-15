@@ -15,17 +15,13 @@ import dev.architectury.event.events.common.CommandRegistrationEvent;
 import dev.architectury.event.events.common.PlayerEvent;
 import it.unimi.dsi.fastutil.booleans.BooleanObjectPair;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.SneakyThrows;
 import net.kyori.adventure.text.TextReplacementConfig;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
-import net.minecraft.commands.arguments.selector.EntitySelector;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
@@ -48,8 +44,6 @@ public class Chattix {
     private static boolean formattingMessageArgument = false;
     @Getter
     private static boolean chatDisabled = Files.exists(chatDisabledFile);
-    @Getter @Setter
-    private static EntitySelector msgEntitySelector;
 
     public static void init() {
         Config.load();
@@ -63,6 +57,7 @@ public class Chattix {
         Placeholders.init(); // We call this for the same reason.
 
         ChattixArch.registerPermission("chattix.bypass", false);
+        ChattixArch.registerPermission("chattix.links", false);
 
         //noinspection ConstantConditions
         predicates.add((player, msg) -> chatDisabled && !ChattixArch.hasPermission(player, "chattix.bypass", false) ?
@@ -140,8 +135,17 @@ public class Chattix {
 
         VicinityChatConfig vicinityChatConfig = Config.getInstance().getVicinityChatConfig();
         TextReplacementConfig placeholderReplacement = Placeholders.createReplacementConfig(placeholderContext, player, message);
-        Component output = VanillaComponentSerializer.vanilla().serialize(createMiniMessage(placeholderReplacement).deserialize(format));
 
+        net.kyori.adventure.text.Component adventureOutput = createMiniMessage(placeholderReplacement)
+                .deserialize(format).replaceText(placeholderReplacement);
+
+        ModerationConfig.LinksConfig linksConfig = Config.getInstance().getModerationConfig().getLinksConfig();
+        //noinspection ConstantValue
+        if (linksConfig.isEnabled() && (!linksConfig.isRequiresPermission() || player == null ||
+                ChattixArch.hasPermission(player, "chattix.links", false)))
+            adventureOutput = adventureOutput.replaceText(linksConfig.getReplacementConfig());
+
+        Component output = VanillaComponentSerializer.vanilla().serialize(adventureOutput);
         return player != null && !ignoreLocal && vicinityChatConfig.isEnabled() && vicinityChatConfig.getLocalChatConfig().isEnabledFor(player) ? Component.empty()
                 .append(format(player, net.kyori.adventure.text.Component.empty(), vicinityChatConfig.getLocalChatConfig().getPrefix(),
                         false, true))
@@ -160,24 +164,20 @@ public class Chattix {
 
     public static BooleanObjectPair<net.kyori.adventure.text.Component> filter(net.kyori.adventure.text.Component component) {
         FilteringConfig filteringConfig = Config.getInstance().getFilteringConfig();
-        if (!filteringConfig.enabled()) return BooleanObjectPair.of(true, component);
+        if (!filteringConfig.isEnabled()) return BooleanObjectPair.of(true, component);
 
         String plain = PlainTextComponentSerializer.plainText().serialize(component);
-        if (!filteringConfig.pattern().matcher(plain).matches())
-            return BooleanObjectPair.of(false, component.replaceText(TextReplacementConfig.builder()
-                    .match(filteringConfig.negatedPattern())
-                    .replacement(builder -> builder.style(net.kyori.adventure.text.format.Style.style()
-                            .decorate(TextDecoration.UNDERLINED)
-                            .color(NamedTextColor.RED)
-                            .build()))
-                    .build()));
+        if (!filteringConfig.getPattern().matcher(plain).matches())
+            return BooleanObjectPair.of(false, component.replaceText(filteringConfig.getReplacementConfig()));
 
         return BooleanObjectPair.of(true, component);
     }
 
     public static MiniMessage createMiniMessage(TextReplacementConfig placeholderReplacement) {
         return MiniMessage.builder()
-                .tags(TagResolver.standard())
+                .editTags(b -> b.tag("parse", (arg, ctx) -> Tag.preProcessParsed(
+                        PlainTextComponentSerializer.plainText().serialize(net.kyori.adventure.text.Component.text(arg.popOr("No arg").value())
+                                .replaceText(placeholderReplacement)))))
                 .postProcessor(post -> post.replaceText(placeholderReplacement))
                 .build();
     }

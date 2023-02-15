@@ -22,6 +22,12 @@ public class UpgradeV1 implements ConfigUpgrade {
         welcomingConfig.set("broadcast", true);
         moderationConfig.set("welcoming", welcomingConfig);
 
+        JsonObject linksConfig = new JsonObject();
+        linksConfig.set("enabled", true);
+        linksConfig.set("requires_permission", true);
+        linksConfig.set("format", "<blue><u>%url%</u></blue>");
+        moderationConfig.set("links", linksConfig);
+
         moderationConfig.set("similarity", 1.0);
         config.set("moderation", moderationConfig);
 
