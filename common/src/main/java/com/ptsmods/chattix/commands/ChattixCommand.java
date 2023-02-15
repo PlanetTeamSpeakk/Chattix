@@ -32,7 +32,14 @@ public class ChattixCommand {
                             FormattingConfig formattingConfig = Config.getInstance().getFormattingConfig();
                             boolean wasFormattingEnabled = formattingConfig.isEnabled();
 
-                            Config.load();
+                            try {
+                                Config.load();
+                            } catch (Exception e) {
+                                ctx.getSource().sendFailure(Component.literal("An error occurred while trying to load the config: ")
+                                        .append(e.getClass().getName() + ": " + e.getMessage()));
+                                return 0;
+                            }
+
                             formattingConfig = Config.getInstance().getFormattingConfig();
 
                             LoadingCache<UUID, Set<UUID>> ignored = Config.getInstance().getIgnored();
