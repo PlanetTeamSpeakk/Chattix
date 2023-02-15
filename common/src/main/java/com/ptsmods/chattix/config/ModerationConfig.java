@@ -1,5 +1,6 @@
 package com.ptsmods.chattix.config;
 
+import com.ptsmods.chattix.commands.SlowModeCommand;
 import com.ptsmods.chattix.util.Util;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import it.unimi.dsi.fastutil.objects.Object2LongOpenHashMap;
@@ -57,7 +58,7 @@ public class ModerationConfig {
         }
 
         public long getLastSent(Player player) {
-            return isEnabled() ? lastSent.getOrDefault(player.getUUID(), -1) : -1;
+            return SlowModeCommand.isEnabled() ? lastSent.getOrDefault(player.getUUID(), -1) : -1;
         }
 
         public void setLastSent(Player player) {

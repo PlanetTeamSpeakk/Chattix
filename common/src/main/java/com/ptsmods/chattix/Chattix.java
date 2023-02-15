@@ -100,6 +100,7 @@ public class Chattix {
             BroadcastCommand.register(dispatcher);
             LocalCommand.register(dispatcher);
             ReplyCommand.register(dispatcher);
+            SlowModeCommand.register(dispatcher);
         });
 
         PlayerEvent.PLAYER_JOIN.register(player -> {
