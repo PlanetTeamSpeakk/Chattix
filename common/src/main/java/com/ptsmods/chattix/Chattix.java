@@ -175,7 +175,7 @@ public class Chattix {
 
     public static MiniMessage createMiniMessage(TextReplacementConfig placeholderReplacement) {
         return MiniMessage.builder()
-                .editTags(b -> b.tag("parse", (arg, ctx) -> Tag.preProcessParsed(
+                .editTags(b -> b.tag("preprocess", (arg, ctx) -> Tag.preProcessParsed(
                         PlainTextComponentSerializer.plainText().serialize(net.kyori.adventure.text.Component.text(arg.popOr("No arg").value())
                                 .replaceText(placeholderReplacement)))))
                 .postProcessor(post -> post.replaceText(placeholderReplacement))
