@@ -22,7 +22,6 @@ public class MessagePlaceholder implements ComponentPlaceholder {
      * @return A version of the given component with escaped tags.
      */
     private Component escapeMMTags(Component component) {
-        // Using our own MiniMessage instance so preprocess tags are also escaped.
         Component newComp = component instanceof TextComponent text ?
                 Component.text(MiniMessage.miniMessage().escapeTags(text.content()))
                         .style(component.style()) : component;
