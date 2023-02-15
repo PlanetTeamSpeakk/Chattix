@@ -38,7 +38,7 @@
     enabled: true // Whether the chat formatting feature should be enabled.
     // The format to default to when there's no specific format.
     // Have a look at https://chattix.ptsmods.com to see what placeholders you can use here.
-    format: "<%luckperms_prefix%%displayname%%luckperms_suffix%> %message%"
+    format: "\\<%luckperms_prefix%%displayname%%luckperms_suffix%> %message%"
 
     // The format to use when formatting messages sent via /msg.
     // Due to a limitation regarding chat signing, it is not possible to use a separate format for the sender and receiver.
