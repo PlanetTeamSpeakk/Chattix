@@ -52,35 +52,36 @@ public class ComponentRenderer {
 
         @Override
         public void visit(Emphasis emphasis) {
-            decorate(TextDecoration.ITALIC);
-            visitChildren(emphasis);
+            decorate(TextDecoration.ITALIC, emphasis);
         }
 
         @Override
         public void visit(StrongEmphasis strongEmphasis) {
-            decorate(TextDecoration.BOLD);
-            visitChildren(strongEmphasis);
+            decorate(TextDecoration.BOLD, strongEmphasis);
         }
 
         @Override
         public void visit(Text text) {
             comp.append(Component.text(text.getLiteral()).style(currentStyle));
-            currentStyle = Style.empty(); // Reset style
         }
 
         @Override
         public void visit(CustomNode customNode) {
-            if (customNode instanceof Strikethrough strikethrough) {
-                decorate(TextDecoration.STRIKETHROUGH);
-                visitChildren(strikethrough);
-            } else if (customNode instanceof Ins ins) {
-                decorate(TextDecoration.UNDERLINED);
-                visitChildren(ins);
-            }
+            if (customNode instanceof Strikethrough) decorate(TextDecoration.STRIKETHROUGH, customNode);
+            else if (customNode instanceof Ins) decorate(TextDecoration.UNDERLINED, customNode);
         }
 
-        private void decorate(TextDecoration decoration) {
+        private void decorate(TextDecoration decoration, Node parent) {
+            // Apply decoration
+            TextDecoration.State state = currentStyle.decoration(decoration);
             currentStyle = currentStyle.decorate(decoration);
+
+            // Visit children (if it has a text child, which it probably does,
+            // this will be appended with the proper style)
+            visitChildren(parent);
+
+            // Reset decoration
+            currentStyle = currentStyle.decoration(decoration, state);
         }
     }
 }
