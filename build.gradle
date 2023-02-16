@@ -1,6 +1,6 @@
 plugins {
     id "architectury-plugin" version "3.4-SNAPSHOT"
-    id "dev.architectury.loom" version "0.12.0-SNAPSHOT" apply false
+    id "dev.architectury.loom" version "1.0-SNAPSHOT" apply false
     id "io.freefair.lombok" version "6.5.1" apply false
     id "com.github.johnrengelman.shadow" version "7.1.2" apply false
     id "io.github.pacifistmc.forgix" version "1.2.6"
@@ -47,7 +47,10 @@ subprojects {
                 "net.kyori:adventure-text-minimessage:${adventureVersion}",
                 "net.kyori:adventure-text-serializer-legacy:${adventureVersion}",
                 "net.kyori:adventure-text-serializer-plain:${adventureVersion}",
-                "org.hjson:hjson:3.0.0"
+                "org.hjson:hjson:3.0.0",
+                "org.commonmark:commonmark:0.21.0",
+                "org.commonmark:commonmark-ext-gfm-strikethrough:0.21.0", // Strikethrough
+                "org.commonmark:commonmark-ext-ins:0.21.0" // Underline
         ]
 
         if (targetProjects.contains(project.name))
