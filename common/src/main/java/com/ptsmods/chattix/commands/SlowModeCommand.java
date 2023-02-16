@@ -22,7 +22,7 @@ public class SlowModeCommand {
 
                     ctx.getSource().sendSuccess(Component.literal("Slow-mode has been " + (isEnabled ? "enabled" : "disabled") + "."), true);
                     return isEnabled ? 2 : 1;
-                }));
+                })); // TODO advancement and death message formatting, message formatting and markdown
     }
 
     public static boolean isEnabled() {
