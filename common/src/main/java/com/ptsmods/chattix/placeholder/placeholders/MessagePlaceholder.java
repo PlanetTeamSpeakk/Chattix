@@ -33,8 +33,12 @@ public class MessagePlaceholder implements ComponentPlaceholder {
      * @return A styled version of the given component
      */
     private Component parseMarkdown(Component component) {
+        ComponentRenderer renderer = ComponentRenderer.builder()
+                .parseLinks(true)
+                .build();
+
         Component newComp = component instanceof TextComponent text ?
-                ComponentRenderer.render(mdParser.parse(text.content()))
+                renderer.render(mdParser.parse(text.content()))
                         .style(b -> b.merge(component.style())) : component;
 
         return newComp.children(Stream.concat(

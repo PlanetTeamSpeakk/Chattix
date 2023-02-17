@@ -1,8 +1,10 @@
 package com.ptsmods.chattix.util;
 
-import lombok.experimental.UtilityClass;
+import lombok.Builder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.commonmark.ext.gfm.strikethrough.Strikethrough;
@@ -12,16 +14,18 @@ import org.commonmark.renderer.NodeRenderer;
 
 import java.util.Set;
 
-@UtilityClass
+@Builder
 public class ComponentRenderer {
-    public static Component render(Node node) {
+    private boolean parseLinks;
+
+    public Component render(Node node) {
         Renderer renderer = new Renderer();
         renderer.render(node);
 
         return renderer.build();
     }
 
-    private static class Renderer extends AbstractVisitor implements NodeRenderer {
+    private class Renderer extends AbstractVisitor implements NodeRenderer {
         private final TextComponent.Builder comp = Component.text();
         private Style currentStyle = Style.empty();
 
@@ -29,6 +33,8 @@ public class ComponentRenderer {
         public Set<Class<? extends Node>> getNodeTypes() {
             return Set.of(
                     Document.class,
+                    Heading.class,
+                    Link.class,
                     Text.class,
                     Emphasis.class,
                     StrongEmphasis.class,
@@ -51,6 +57,41 @@ public class ComponentRenderer {
         }
 
         @Override
+        public void visit(Heading heading) {
+            // Restore heading format
+            append("#".repeat(heading.getLevel()) + " ");
+            visitChildren(heading);
+        }
+
+        @Override
+        public void visit(Link link) {
+            if (parseLinks) {
+                Style old = currentStyle;
+                currentStyle = currentStyle
+                        .decorate(TextDecoration.UNDERLINED)
+                        .color(NamedTextColor.BLUE)
+                        .clickEvent(ClickEvent.openUrl(link.getDestination()));
+                visitChildren(link);
+                currentStyle = old;
+            } else {
+                append("[");
+                visitChildren(link);
+                append("]");
+                append("(" + link.getDestination() + ")");
+            }
+        }
+
+        @Override
+        public void visit(Code code) {
+            append('`' + code.getLiteral() + '`');
+        }
+
+        @Override
+        public void visit(FencedCodeBlock fencedCodeBlock) {
+            append("```" + fencedCodeBlock.getLiteral() + "```");
+        }
+
+        @Override
         public void visit(Emphasis emphasis) {
             decorate(TextDecoration.ITALIC, emphasis);
         }
@@ -62,13 +103,17 @@ public class ComponentRenderer {
 
         @Override
         public void visit(Text text) {
-            comp.append(Component.text(text.getLiteral()).style(currentStyle));
+            append(text.getLiteral());
         }
 
         @Override
         public void visit(CustomNode customNode) {
             if (customNode instanceof Strikethrough) decorate(TextDecoration.STRIKETHROUGH, customNode);
             else if (customNode instanceof Ins) decorate(TextDecoration.UNDERLINED, customNode);
+        }
+
+        private void append(String text) {
+            comp.append(Component.text(text).style(currentStyle));
         }
 
         private void decorate(TextDecoration decoration, Node parent) {
