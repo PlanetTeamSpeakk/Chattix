@@ -1,7 +1,10 @@
 package com.ptsmods.chattix.placeholder.placeholders;
 
+import com.ptsmods.chattix.config.Config;
+import com.ptsmods.chattix.config.FormattingConfig;
 import com.ptsmods.chattix.placeholder.ComponentPlaceholder;
 import com.ptsmods.chattix.placeholder.PlaceholderContext;
+import com.ptsmods.chattix.util.ChattixArch;
 import com.ptsmods.chattix.util.ComponentRenderer;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
@@ -24,7 +27,19 @@ public class MessagePlaceholder implements ComponentPlaceholder {
 
     @Override
     public Component parse(@NonNull PlaceholderContext context, @NonNull ServerPlayer player, @NonNull Component message, @Nullable String arg) {
-        return parseMarkdown(message);
+        FormattingConfig formattingConfig = Config.getInstance().getFormattingConfig();
+        FormattingConfig.MarkdownConfig markdownConfig = formattingConfig.getMarkdownConfig();
+        if (!formattingConfig.isEnabled() || !markdownConfig.isEnabled()) return message;
+
+        ComponentRenderer renderer = ComponentRenderer.builder()
+                .parseEmphasis(checkPerm(player, markdownConfig.getItalic()))
+                .parseStrongEmphasis(checkPerm(player, markdownConfig.getBold()))
+                .parseStrikethrough(checkPerm(player, markdownConfig.getStrikethrough()))
+                .parseUnderline(checkPerm(player, markdownConfig.getUnderline()))
+                .parseLinks(checkPerm(player, markdownConfig.getLinks()))
+                .build();
+
+        return parseMarkdown(renderer, message);
     }
 
     /**
@@ -32,11 +47,7 @@ public class MessagePlaceholder implements ComponentPlaceholder {
      * @param component The component to parse markdown in
      * @return A styled version of the given component
      */
-    private Component parseMarkdown(Component component) {
-        ComponentRenderer renderer = ComponentRenderer.builder()
-                .parseLinks(true)
-                .build();
-
+    private Component parseMarkdown(@NonNull ComponentRenderer renderer, @NonNull Component component) {
         Component newComp = component instanceof TextComponent text ?
                 renderer.render(mdParser.parse(text.content()))
                         .style(b -> b.merge(component.style())) : component;
@@ -44,7 +55,12 @@ public class MessagePlaceholder implements ComponentPlaceholder {
         return newComp.children(Stream.concat(
                 newComp.children().stream(),
                 component.children().stream()
-                        .map(this::parseMarkdown))
+                        .map(comp -> parseMarkdown(renderer, comp)))
                 .toList());
+    }
+
+    private static boolean checkPerm(@NonNull ServerPlayer player, String perm) {
+        //noinspection ConstantValue
+        return perm == null || ChattixArch.hasPermission(player, perm, false);
     }
 }

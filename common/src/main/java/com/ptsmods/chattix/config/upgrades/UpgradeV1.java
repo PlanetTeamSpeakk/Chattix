@@ -52,6 +52,18 @@ public class UpgradeV1 implements ConfigUpgrade {
             vicinityChatConfig.set("local_chat", localChatConfig);
         }
 
+        JsonObject formattingConfig = config.get("formatting") == null ? null : config.get("formatting").asObject();
+        if (formattingConfig != null) {
+            JsonObject markdownConfig = new JsonObject();
+            markdownConfig.set("enabled", false);
+            markdownConfig.set("bold", "chattix.markdown.basic");
+            markdownConfig.set("italic", "chattix.markdown.basic");
+            markdownConfig.set("strikethrough", "chattix.markdown.strikethrough");
+            markdownConfig.set("underline", "chattix.markdown.underline");
+            markdownConfig.set("links", "chattix.markdown.links");
+            formattingConfig.set("markdown", markdownConfig);
+        }
+
         return config;
     }
 }

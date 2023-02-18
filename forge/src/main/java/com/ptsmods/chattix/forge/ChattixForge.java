@@ -31,7 +31,7 @@ public class ChattixForge {
     }
 
     public static void registerPermission(String permission, boolean defaultValue) {
-        if (registeredPermissions) throw new IllegalStateException("Permissions have already been registered!");
+        if (registeredPermissions) return;
 
         permissionNodes.put(permission, new PermissionNode<>(Chattix.MOD_ID, permission.startsWith("chattix.") ?
                 permission.substring(9) : permission, PermissionTypes.BOOLEAN, (player, uuid, permissionDynamicContext) -> defaultValue));

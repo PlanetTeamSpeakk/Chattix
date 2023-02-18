@@ -14,9 +14,9 @@ import org.commonmark.renderer.NodeRenderer;
 
 import java.util.Set;
 
-@Builder
+@Builder(builderClassName = "Builder")
 public class ComponentRenderer {
-    private boolean parseLinks;
+    private boolean parseEmphasis, parseStrongEmphasis, parseStrikethrough, parseUnderline, parseLinks;
 
     public Component render(Node node) {
         Renderer renderer = new Renderer();
@@ -93,12 +93,22 @@ public class ComponentRenderer {
 
         @Override
         public void visit(Emphasis emphasis) {
-            decorate(TextDecoration.ITALIC, emphasis);
+            if (parseEmphasis) decorate(TextDecoration.ITALIC, emphasis);
+            else {
+                append("*");
+                visitChildren(emphasis);
+                append("*");
+            }
         }
 
         @Override
         public void visit(StrongEmphasis strongEmphasis) {
-            decorate(TextDecoration.BOLD, strongEmphasis);
+            if (parseStrongEmphasis) decorate(TextDecoration.BOLD, strongEmphasis);
+            else {
+                append("**");
+                visitChildren(strongEmphasis);
+                append("**");
+            }
         }
 
         @Override
@@ -108,8 +118,20 @@ public class ComponentRenderer {
 
         @Override
         public void visit(CustomNode customNode) {
-            if (customNode instanceof Strikethrough) decorate(TextDecoration.STRIKETHROUGH, customNode);
-            else if (customNode instanceof Ins) decorate(TextDecoration.UNDERLINED, customNode);
+            if (customNode instanceof Strikethrough)
+                if (parseStrikethrough) decorate(TextDecoration.STRIKETHROUGH, customNode);
+                else {
+                    append("~");
+                    visitChildren(customNode);
+                    append("~");
+                }
+            else if (customNode instanceof Ins)
+                if (parseUnderline) decorate(TextDecoration.UNDERLINED, customNode);
+                else {
+                    append("++");
+                    visitChildren(customNode);
+                    append("++");
+                }
         }
 
         private void append(String text) {

@@ -1,6 +1,7 @@
 package com.ptsmods.chattix.config;
 
 import com.google.common.collect.ImmutableMap;
+import com.ptsmods.chattix.util.ChattixArch;
 import com.ptsmods.chattix.util.LPHelper;
 import com.ptsmods.chattix.util.Util;
 import it.unimi.dsi.fastutil.Pair;
@@ -24,12 +25,13 @@ import java.util.stream.StreamSupport;
 public class FormattingConfig {
     public static final FormattingConfig DEFAULT = new FormattingConfig(true, "%luckperms_prefix%%displayname%%luckperms_suffix%: %message%",
             "<grey>[<white>%sender_displayname%</white> -> <white>%recipient_displayname%</white>]</grey> %message%",
-            GroupConfig.DEFAULT, ImmutableMap.of());
+            GroupConfig.DEFAULT, ImmutableMap.of(), MarkdownConfig.DEFAULT);
     private final boolean enabled;
     @NonNull private final String format;
     @NonNull private final String msgFormat;
     @NonNull private final GroupConfig groupConfig;
     @NonNull private final Map<ResourceLocation, String> worldConfig;
+    @NonNull private final MarkdownConfig markdownConfig;
 
     static FormattingConfig fromJson(JsonObject object) {
         boolean enabled = object.getBoolean("enabled", true);
@@ -42,7 +44,9 @@ public class FormattingConfig {
                         .map(member -> Pair.of(new ResourceLocation(member.getName()), member.getValue().asString()))
                         .collect(ImmutableMap.toImmutableMap(Pair::left, Pair::right));
 
-        return new FormattingConfig(enabled, format, msgFormat, groupConfig, worldConfig);
+        MarkdownConfig markdownConfig = object.get("markdown") == null ? MarkdownConfig.DEFAULT : MarkdownConfig.fromJson(object.get("markdown").asObject());
+
+        return new FormattingConfig(enabled, format, msgFormat, groupConfig, worldConfig, markdownConfig);
     }
 
     public String getActiveFormatFor(ServerPlayer player) {
@@ -112,6 +116,40 @@ public class FormattingConfig {
             public String getPermission() {
                 return "chattix.group." + name;
             }
+        }
+    }
+
+    @Getter
+    public static class MarkdownConfig {
+        private static final MarkdownConfig DEFAULT = new MarkdownConfig(false, "chattix.markdown.basic",
+                "chattix.markdown.basic", "chattix.markdown.strikethrough", "chattix.markdown.underline",
+                "chattix.markdown.links");
+
+        private final boolean enabled;
+        private final String bold, italic, strikethrough, underline, links;
+
+        MarkdownConfig(boolean enabled, String bold, String italic, String strikethrough, String underline, String links) {
+            this.enabled = enabled;
+            this.bold = registerPerm(bold);
+            this.italic = registerPerm(italic);
+            this.strikethrough = registerPerm(strikethrough);
+            this.underline = registerPerm(underline);
+            this.links = registerPerm(links);
+        }
+
+        private String registerPerm(String perm) {
+            if (perm != null) ChattixArch.registerPermission(perm, false);
+
+            return perm;
+        }
+
+        private static MarkdownConfig fromJson(JsonObject object) {
+            return new MarkdownConfig(object.getBoolean("enabled", false),
+                    object.getString("bold", DEFAULT.getBold()),
+                    object.getString("italic", DEFAULT.getItalic()),
+                    object.getString("strikethrough", DEFAULT.getStrikethrough()),
+                    object.getString("underline", DEFAULT.getUnderline()),
+                    object.getString("links", DEFAULT.getLinks()));
         }
     }
 }

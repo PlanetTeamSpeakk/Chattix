@@ -65,7 +65,7 @@
           format: "<dark_red><b>NETHER</b></dark_red> <white><b>Knight</b></white> %luckperms_prefix%%displayname%%luckperms_suffix%: %message%"
         }
       ]
-    },
+    }
 
     // You can also supply a format for different worlds
     // These formats take precedence over both the default and the group-specific formats,
@@ -73,7 +73,20 @@
     worlds: {
       "minecraft:nether": "<dark_red><b>NETHER</b></dark_red> %luckperms_prefix%%displayname%%luckperms_suffix%: %message%"
     }
-  },
+
+    // Chattix supports markdown formattings in chat messages.
+    // These include stuff like **this** which is translated to bold text.
+    // You can set the permissions required to use these here, setting a value to
+    // null will allow everyone to use them regardless of permission.
+    markdown: {
+      enabled: false // If disabled, no markdown is parsed. This is ignored if formatting is disabled entirely.
+      bold: "chattix.markdown.basic" // **bold**
+      italic: "chattix.markdown.basic" // *italic*
+      strikethrough: "chattix.markdown.strikethrough" // ~strikethrough~
+      underline: "chattix.markdown.underline" // ++underline++
+      links: "chattix.markdown.links" // [link text](url) (e.g. [Google](https://google.com), translated into a URL that reads 'Google' and leads to google.com)
+    }
+  }
 
   // Only send messages to either close players, or players in the same world.
   vicinity_chat: {
@@ -85,13 +98,13 @@
       default: true // If enabled and local chat is enabled, messages will by default be sent via local chat instead of global chat.
       prefix: "<dark_green><b>LOCAL</b></dark_green> " // The prefix to put before messages sent via local chat
     }
-  },
+  }
 
   // When enabled, players will hear the given sound whenever their name is mentioned in chat.
   // Players can individually toggle this feature using the /mentions command.
   // Doing so while mentions are enabled will disable them, otherwise it will enable them.
   mentions: {
-    enabled: true,
+    enabled: true
     sound: "minecraft:block.note_block.bell"
   }
 
