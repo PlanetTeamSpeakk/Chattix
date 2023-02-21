@@ -1,6 +1,7 @@
 package com.ptsmods.chattix.util;
 
 import lombok.Builder;
+import lombok.Singular;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -12,11 +13,15 @@ import org.commonmark.ext.ins.Ins;
 import org.commonmark.node.*;
 import org.commonmark.renderer.NodeRenderer;
 
+import java.util.Collection;
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 @Builder(builderClassName = "Builder")
 public class ComponentRenderer {
     private boolean parseEmphasis, parseStrongEmphasis, parseStrikethrough, parseUnderline, parseLinks;
+    @Singular
+    private Collection<UnaryOperator<TextComponent>> postProcessors;
 
     public Component render(Node node) {
         Renderer renderer = new Renderer();
@@ -135,7 +140,10 @@ public class ComponentRenderer {
         }
 
         private void append(String text) {
-            comp.append(Component.text(text).style(currentStyle));
+            TextComponent textComp = Component.text(text).style(currentStyle);
+            for (UnaryOperator<TextComponent> postProcessor : postProcessors) textComp = postProcessor.apply(textComp);
+
+            comp.append(textComp);
         }
 
         private void decorate(TextDecoration decoration, Node parent) {

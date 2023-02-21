@@ -9,6 +9,9 @@ import com.ptsmods.chattix.util.ComponentRenderer;
 import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextFormat;
+import net.kyori.adventure.text.serializer.legacy.LimitedLegacyComponentSerializer;
 import net.minecraft.server.level.ServerPlayer;
 import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
 import org.commonmark.ext.ins.InsExtension;
@@ -31,15 +34,41 @@ public class MessagePlaceholder implements ComponentPlaceholder {
         FormattingConfig.MarkdownConfig markdownConfig = formattingConfig.getMarkdownConfig();
         if (!formattingConfig.isEnabled() || !markdownConfig.isEnabled()) return message;
 
-        ComponentRenderer renderer = ComponentRenderer.builder()
+        ComponentRenderer.Builder builder = ComponentRenderer.builder()
                 .parseEmphasis(checkPerm(player, markdownConfig.getItalic()))
                 .parseStrongEmphasis(checkPerm(player, markdownConfig.getBold()))
                 .parseStrikethrough(checkPerm(player, markdownConfig.getStrikethrough()))
                 .parseUnderline(checkPerm(player, markdownConfig.getUnderline()))
-                .parseLinks(checkPerm(player, markdownConfig.getLinks()))
+                .parseLinks(checkPerm(player, markdownConfig.getLinks()));
+
+        List<TextFormat> formats = List.of(
+                NamedTextColor.DARK_BLUE,
+                NamedTextColor.DARK_GREEN,
+                NamedTextColor.DARK_AQUA,
+                NamedTextColor.DARK_RED,
+                NamedTextColor.DARK_PURPLE,
+                NamedTextColor.GOLD,
+                NamedTextColor.GRAY,
+                NamedTextColor.DARK_GRAY,
+                NamedTextColor.BLUE,
+                NamedTextColor.BLACK,
+                NamedTextColor.GREEN,
+                NamedTextColor.AQUA,
+                NamedTextColor.RED,
+                NamedTextColor.LIGHT_PURPLE,
+                NamedTextColor.YELLOW,
+                NamedTextColor.WHITE
+        );
+
+        // TODO base these formats on config and/or permissions
+        LimitedLegacyComponentSerializer serializer = LimitedLegacyComponentSerializer.builder()
+                .character('&')
+                .formats(formats)
                 .build();
 
-        return parseMarkdown(renderer, message);
+        builder.postProcessor(comp -> serializer.deserialize(comp.content()));
+
+        return parseMarkdown(builder.build(), message);
     }
 
     /**
