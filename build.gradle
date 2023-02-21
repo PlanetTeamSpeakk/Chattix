@@ -3,7 +3,7 @@ plugins {
     id "dev.architectury.loom" version "1.0-SNAPSHOT" apply false
     id "io.freefair.lombok" version "6.5.1" apply false
     id "com.github.johnrengelman.shadow" version "7.1.2" apply false
-    id "io.github.pacifistmc.forgix" version "1.2.6"
+    id "io.github.pacifistmc.forgix" version "1.+"
 }
 
 architectury {
@@ -28,8 +28,8 @@ subprojects {
         }
 
         shadowJar {
-            exclude "org.jetbrains"
-            exclude "org.intellij"
+            exclude "org/jetbrains/**"
+            exclude "org/intellij/**"
         }
     }
 
@@ -74,9 +74,9 @@ allprojects {
         maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     }
 
-    tasks.withType(JavaCompile) {
+    tasks.withType(JavaCompile).configureEach {
         options.encoding = "UTF-8"
-        options.release = 17
+        options.release.set(17)
     }
 
     java {
@@ -97,8 +97,7 @@ forgix {
         additionalRelocate("net.kyori.examination", prefix + "examination")
         additionalRelocate("org.hjson", prefix + "hjson")
 
-        additionalRelocate("org.intellij.lang.annotations", prefix + "ij_annotations")
-        additionalRelocate("org.jetbrains.annotations", prefix + "jb_annotations")
+        additionalRelocate("org.commonmark", prefix + "commonmark")
         return null
     }
 
@@ -109,8 +108,7 @@ forgix {
         additionalRelocate("net.kyori.examination", prefix + "examination")
         additionalRelocate("org.hjson", prefix + "hjson")
 
-        additionalRelocate("org.intellij.lang.annotations", prefix + "ij_annotations")
-        additionalRelocate("org.jetbrains.annotations", prefix + "jb_annotations")
+        additionalRelocate("org.commonmark", prefix + "commonmark")
         return null
     }
 
@@ -121,13 +119,12 @@ forgix {
         additionalRelocate("net.kyori.examination", prefix + "examination")
         additionalRelocate("org.hjson", prefix + "hjson")
 
-        additionalRelocate("org.intellij.lang.annotations", prefix + "ij_annotations")
-        additionalRelocate("org.jetbrains.annotations", prefix + "jb_annotations")
+        additionalRelocate("org.commonmark", prefix + "commonmark")
         return null
     }
 }
 
-task doMerge {
+tasks.register('doMerge') {
     dependsOn(":fabric:build", ":forge:build", ":quilt:build")
     finalizedBy(mergeJars)
 }
