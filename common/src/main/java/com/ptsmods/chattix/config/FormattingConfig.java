@@ -1,5 +1,6 @@
 package com.ptsmods.chattix.config;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.ptsmods.chattix.util.ChattixArch;
 import com.ptsmods.chattix.util.LPHelper;
@@ -25,13 +26,20 @@ import java.util.stream.StreamSupport;
 public class FormattingConfig {
     public static final FormattingConfig DEFAULT = new FormattingConfig(true, "%luckperms_prefix%%displayname%%luckperms_suffix%: %message%",
             "<grey>[<white>%sender_displayname%</white> -> <white>%recipient_displayname%</white>]</grey> %message%",
-            GroupConfig.DEFAULT, ImmutableMap.of(), MarkdownConfig.DEFAULT);
+            GroupConfig.DEFAULT, ImmutableMap.of(), MarkdownConfig.DEFAULT, ImmutableMap.of(
+                "chattix.chatformatting.basic", ImmutableList.of("DARK_GREEN", "DARK_AQUA", "DARK_RED", "DARK_PURPLE",
+                    "GOLD", "GRAY", "DARK_GRAY", "BLUE", "GREEN", "AQUA", "RED", "LIGHT_PURPLE", "YELLOW", "WHITE"),
+                "chattix.chatformatting.dark", ImmutableList.of("DARK_BLUE", "BLACK"),
+                "chattix.chatformatting.hex", ImmutableList.of("HEX"),
+                "chatix.chatformatting.decorations", ImmutableList.of("BOLD", "UNDERLINED", "ITALIC", "STRIKETHROUGH"),
+                "chattix.chatformatting.obfuscation", ImmutableList.of("OBFUSCATED")));
     private final boolean enabled;
     @NonNull private final String format;
     @NonNull private final String msgFormat;
     @NonNull private final GroupConfig groupConfig;
     @NonNull private final Map<ResourceLocation, String> worldConfig;
     @NonNull private final MarkdownConfig markdownConfig;
+    @NonNull private final Map<String, List<String>> chatFormatting;
 
     static FormattingConfig fromJson(JsonObject object) {
         boolean enabled = object.getBoolean("enabled", true);
@@ -46,7 +54,23 @@ public class FormattingConfig {
 
         MarkdownConfig markdownConfig = object.get("markdown") == null ? MarkdownConfig.DEFAULT : MarkdownConfig.fromJson(object.get("markdown").asObject());
 
-        return new FormattingConfig(enabled, format, msgFormat, groupConfig, worldConfig, markdownConfig);
+        Map<String, List<String>> chatFormatting;
+        if (object.get("chat_formatting") == null || !object.get("chat_formatting").isObject()) chatFormatting = DEFAULT.getChatFormatting();
+        else {
+            ImmutableMap.Builder<String, List<String>> chatFormattingBuilder = ImmutableMap.builder();
+            JsonObject cfData = object.get("chat_formatting").asObject();
+
+            for (String perm : cfData.names()) {
+                if (!cfData.get(perm).isArray()) continue;
+
+                chatFormattingBuilder.put(perm, StreamSupport.stream(cfData.get(perm).asArray().spliterator(), false)
+                        .map(JsonValue::asString)
+                        .collect(ImmutableList.toImmutableList()));
+            }
+            chatFormatting = chatFormattingBuilder.build();
+        }
+
+        return new FormattingConfig(enabled, format, msgFormat, groupConfig, worldConfig, markdownConfig, chatFormatting);
     }
 
     public String getActiveFormatFor(ServerPlayer player) {

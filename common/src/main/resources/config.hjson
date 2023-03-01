@@ -86,6 +86,35 @@
       underline: "chattix.markdown.underline" // ++underline++
       links: "chattix.markdown.links" // [link text](url) (e.g. [Google](https://google.com), translated into a URL that reads 'Google' and leads to google.com)
     }
+
+    chat_formatting: {
+      // Keys here are the name of the permission, the values are a list of text formats players
+      // with the given permission may use.
+      // All possible values are already listed below.
+
+      // Group all basic colors into a single permission
+      // This contains formattings like &a, &6, &3, etc.
+      "chattix.chatformatting.basic": [
+        "DARK_GREEN", "DARK_AQUA", "DARK_RED", "DARK_PURPLE", "GOLD", "GRAY", "DARK_GRAY",
+        "BLUE", "GREEN", "AQUA", "RED", "LIGHT_PURPLE", "YELLOW", "WHITE"
+      ]
+
+      // Use a special permission for hard to read colors
+      // This contains only &1 and &0
+      "chattix.chatformatting.dark": ["DARK_BLUE", "BLACK"]
+
+      // Special case: hex colors (e.g. &#ff9a23)
+      "chattix.chatformatting.hex": ["HEX"]
+
+      // Text decorations, all except obfuscation (which makes text impossible to read)
+      // Examples are &l, &n
+      "chattix.chatformatting.decorations": [
+        "BOLD", "UNDERLINED", "ITALIC", "STRIKETHROUGH"
+      ]
+
+      // Obfuscation, unreadable text. You probably don't want to give this to everyone.
+      "chattix.format.obfuscation": ["OBFUSCATED"]
+    }
   }
 
   // Only send messages to either close players, or players in the same world.

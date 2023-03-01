@@ -10,6 +10,7 @@ import lombok.NonNull;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.format.TextFormat;
 import net.kyori.adventure.text.serializer.legacy.LimitedLegacyComponentSerializer;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,6 +21,9 @@ import org.commonmark.parser.Parser;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class MessagePlaceholder implements ComponentPlaceholder {
@@ -28,45 +32,41 @@ public class MessagePlaceholder implements ComponentPlaceholder {
             .extensions(List.of(StrikethroughExtension.create(), InsExtension.create()))
             .build();
 
+    @SuppressWarnings({"RedundantOperationOnEmptyContainer", "ConstantValue"}) // Neither are the case here.
     @Override
     public Component parse(@NonNull PlaceholderContext context, @NonNull ServerPlayer player, @NonNull Component message, @Nullable String arg) {
         FormattingConfig formattingConfig = Config.getInstance().getFormattingConfig();
         FormattingConfig.MarkdownConfig markdownConfig = formattingConfig.getMarkdownConfig();
-        if (!formattingConfig.isEnabled() || !markdownConfig.isEnabled()) return message;
+        if (!formattingConfig.isEnabled()) return message;
 
-        ComponentRenderer.Builder builder = ComponentRenderer.builder()
-                .parseEmphasis(checkPerm(player, markdownConfig.getItalic()))
-                .parseStrongEmphasis(checkPerm(player, markdownConfig.getBold()))
-                .parseStrikethrough(checkPerm(player, markdownConfig.getStrikethrough()))
-                .parseUnderline(checkPerm(player, markdownConfig.getUnderline()))
-                .parseLinks(checkPerm(player, markdownConfig.getLinks()));
+        Set<String> formatStrings = Config.getInstance().getFormattingConfig().getChatFormatting().entrySet().stream()
+                .filter(entry -> ChattixArch.hasPermission(player, entry.getKey(), false))
+                .flatMap(entry -> entry.getValue().stream())
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
 
-        List<TextFormat> formats = List.of(
-                NamedTextColor.DARK_BLUE,
-                NamedTextColor.DARK_GREEN,
-                NamedTextColor.DARK_AQUA,
-                NamedTextColor.DARK_RED,
-                NamedTextColor.DARK_PURPLE,
-                NamedTextColor.GOLD,
-                NamedTextColor.GRAY,
-                NamedTextColor.DARK_GRAY,
-                NamedTextColor.BLUE,
-                NamedTextColor.BLACK,
-                NamedTextColor.GREEN,
-                NamedTextColor.AQUA,
-                NamedTextColor.RED,
-                NamedTextColor.LIGHT_PURPLE,
-                NamedTextColor.YELLOW,
-                NamedTextColor.WHITE
-        );
+        Set<TextFormat> formats = formatStrings.stream()
+                .map(s -> NamedTextColor.NAMES.value(s) == null ? TextDecoration.NAMES.value(s) : NamedTextColor.NAMES.value(s))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
 
-        // TODO base these formats on config and/or permissions
-        LimitedLegacyComponentSerializer serializer = LimitedLegacyComponentSerializer.builder()
+        LimitedLegacyComponentSerializer.Builder serializerBuilder = LimitedLegacyComponentSerializer.builder()
                 .character('&')
-                .formats(formats)
-                .build();
+                .formats(formats);
 
-        builder.postProcessor(comp -> serializer.deserialize(comp.content()));
+        if (formatStrings.contains("hex")) serializerBuilder.hexColors();
+        LimitedLegacyComponentSerializer serializer = serializerBuilder.build();
+
+        boolean mdEnabled = markdownConfig.isEnabled();
+        ComponentRenderer.Builder builder = ComponentRenderer.builder()
+                .parseEmphasis(mdEnabled && checkPerm(player, markdownConfig.getItalic()))
+                .parseStrongEmphasis(mdEnabled && checkPerm(player, markdownConfig.getBold()))
+                .parseStrikethrough(mdEnabled && checkPerm(player, markdownConfig.getStrikethrough()))
+                .parseUnderline(mdEnabled && checkPerm(player, markdownConfig.getUnderline()))
+                .parseLinks(mdEnabled && checkPerm(player, markdownConfig.getLinks()));
+
+        builder.postProcessor(comp -> serializer.deserialize(comp.content())
+                .style(b -> b.merge(comp.style())));
 
         return parseMarkdown(builder.build(), message);
     }

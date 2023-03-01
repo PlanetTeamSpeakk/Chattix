@@ -23,6 +23,7 @@
  */
 package net.kyori.adventure.text.serializer.legacy;
 
+import com.google.common.collect.ImmutableSet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -121,7 +122,12 @@ final class LimitedLegacyComponentSerializerImpl implements LimitedLegacyCompone
         this.hexColours = hexColours;
         this.useTerriblyStupidHexFormat = useTerriblyStupidHexFormat;
         this.flattener = flattener;
-        this.formats = formats;
+
+        if (!formats.isEmpty()) {
+            Set<TextFormat> formatsImd = new HashSet<>(formats);
+            formatsImd.add(Reset.INSTANCE);
+            this.formats = ImmutableSet.copyOf(formatsImd);
+        } else this.formats = ImmutableSet.of();
     }
 
     private @Nullable FormatCodeType determineFormatType(final char legacy, final String input, final int pos) {
@@ -167,7 +173,7 @@ final class LimitedLegacyComponentSerializerImpl implements LimitedLegacyCompone
         if (foundFormat == null) {
             return null;
         }
-        if (foundFormat == FormatCodeType.KYORI_HEX) {
+        if (foundFormat == FormatCodeType.KYORI_HEX && hexColours) {
             final @Nullable TextColor parsed = tryParseHexColor(input.substring(pos, pos + 6));
             if (parsed != null) {
                 return new DecodedFormat(foundFormat, parsed);
@@ -177,7 +183,7 @@ final class LimitedLegacyComponentSerializerImpl implements LimitedLegacyCompone
             if (formats != null && !formats.contains(format)) return null;
 
             return new DecodedFormat(foundFormat, format);
-        } else if (foundFormat == FormatCodeType.BUNGEECORD_UNUSUAL_HEX) {
+        } else if (foundFormat == FormatCodeType.BUNGEECORD_UNUSUAL_HEX && hexColours) {
             final StringBuilder foundHex = new StringBuilder(6);
             for (int i = pos - 1; i >= pos - 11; i -= 2) {
                 foundHex.append(input.charAt(i));

@@ -1,5 +1,7 @@
 package com.ptsmods.chattix.config.upgrades;
 
+import net.kyori.adventure.text.format.NamedTextColor;
+import org.hjson.JsonArray;
 import org.hjson.JsonObject;
 
 public class UpgradeV1 implements ConfigUpgrade {
@@ -62,6 +64,24 @@ public class UpgradeV1 implements ConfigUpgrade {
             markdownConfig.set("underline", "chattix.markdown.underline");
             markdownConfig.set("links", "chattix.markdown.links");
             formattingConfig.set("markdown", markdownConfig);
+
+
+            JsonObject chatFormattingConfig = new JsonObject();
+
+            JsonArray basic = new JsonArray();
+            NamedTextColor.NAMES.keys().stream()
+                    .filter(s -> !"dark_blue".equals(s) && !"black".equals(s))
+                    .map(String::toUpperCase)
+                    .forEach(basic::add);
+            chatFormattingConfig.set("chattix.chatformatting.basic", basic);
+
+            chatFormattingConfig.set("chattix.chatformatting.dark", new JsonArray().add("DARK_BLUE").add("BLACK"));
+            chatFormattingConfig.set("chattix.chatformatting.hex", new JsonArray().add("HEX"));
+            chatFormattingConfig.set("chattix.chatformatting.decorations", new JsonArray()
+                    .add("BOLD").add("UNDERLINED").add("ITALIC").add("STRIKETHROUGH"));
+            chatFormattingConfig.set("chattix.chatformatting.obfuscation", new JsonArray().add("OBFUSCATED"));
+
+            formattingConfig.set("chat_formatting", chatFormattingConfig);
         }
 
         return config;
