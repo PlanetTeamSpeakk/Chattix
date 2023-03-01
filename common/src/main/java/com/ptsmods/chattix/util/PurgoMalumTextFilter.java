@@ -1,8 +1,6 @@
 package com.ptsmods.chattix.util;
 
-import com.ptsmods.chattix.Chattix;
 import lombok.SneakyThrows;
-import net.minecraft.network.chat.FilterMask;
 import net.minecraft.server.network.FilteredText;
 import net.minecraft.server.network.TextFilter;
 import org.jetbrains.annotations.NotNull;
@@ -64,16 +62,11 @@ public class PurgoMalumTextFilter implements TextFilter {
                 .GET()
                 .build(), HttpResponse.BodyHandlers.ofString())
                 .thenApply(resp -> {
-                    Chattix.LOG.info("Input: " + msg + ", output: " + resp.body() + ", filter: " + resp.body().equals(msg));
                     String result = resp.body();
 
-                    FilterMask mask = new FilterMask(msg.length());
-                    mask.setFiltered(0);
-                    mask.setFiltered(1);
-                    mask.setFiltered(2);
-                    mask.setFiltered(3);
+                    // TODO actually do the filtering
 
-                    return result.equals(msg) ? FilteredText.passThrough(msg) : new FilteredText(msg, mask);
+                    return result.equals(msg) ? FilteredText.passThrough(msg) : FilteredText.fullyFiltered(msg);
                 });
     }
 
