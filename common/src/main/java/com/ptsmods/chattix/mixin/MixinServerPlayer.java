@@ -11,4 +11,9 @@ import org.spongepowered.asm.mixin.Unique;
 @Mixin(ServerPlayer.class)
 public class MixinServerPlayer implements ServerPlayerAddon {
     private @Unique boolean firstTimePlaying;
+
+//    @Inject(at = @At("RETURN"), method = "getTextFilter", cancellable = true)
+//    public void getTextFilter(CallbackInfoReturnable<TextFilter> cbi) {
+//        cbi.setReturnValue(new PurgoMalumTextFilter());
+//    }
 }
