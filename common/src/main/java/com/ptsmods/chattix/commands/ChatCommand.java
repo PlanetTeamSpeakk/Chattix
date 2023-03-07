@@ -5,6 +5,7 @@ import com.mojang.brigadier.context.CommandContext;
 import com.ptsmods.chattix.Chattix;
 import com.ptsmods.chattix.util.ChattixArch;
 import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -13,6 +14,11 @@ import net.minecraft.network.chat.Style;
 import static net.minecraft.commands.Commands.literal;
 
 public class ChatCommand {
+    private static final MutableComponent clearComponent = Util.make(Component.empty(), clearComponent -> {
+        for (int i = 0; i < 100; i++)
+            clearComponent.append(Component.literal("\n"));
+    });
+
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         ChattixArch.registerPermission("chattix.managechat", false);
         dispatcher.register(literal("chat")
@@ -22,10 +28,6 @@ public class ChatCommand {
     }
 
     private static int executeClear(CommandContext<CommandSourceStack> ctx) {
-        MutableComponent clearComponent = Component.empty();
-        for (int i = 0; i < 100; i++)
-            clearComponent.append(Component.literal("\n"));
-
         ctx.getSource().getServer().getPlayerList().getPlayers().stream()
                 .filter(player -> !ChattixArch.hasPermission(player, "chattix.bypass", false))
                 .forEach(player -> player.sendSystemMessage(clearComponent));
