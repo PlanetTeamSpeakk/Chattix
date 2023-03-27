@@ -124,7 +124,7 @@ public class Config {
 
     @SneakyThrows // Unlikely that Files#createDirectories(Path) will throw an exception
     private static boolean ensureExists() {
-        if (!Files.exists(ignoredPath)) Files.createDirectory(ignoredPath);
+        if (!Files.exists(ignoredPath)) Files.createDirectories(ignoredPath);
         if (!Files.exists(configFile)) {
             Files.createDirectories(configFile.getParent());
             try (ReadableByteChannel rbc = Channels.newChannel(Objects.requireNonNull(Chattix.class.getClassLoader().getResourceAsStream("config.hjson")));
